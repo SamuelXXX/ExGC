@@ -1,0 +1,30 @@
+{
+	"version": "2.0.0",
+	"options": {
+		"cwd": "${workspaceRoot}"
+	},
+	"tasks": [
+		{
+			"label": "make_debug",
+			"type": "shell",
+			"command": "mingw32-make",
+			"problemMatcher": [],
+			"group": {
+				"isDefault": true,
+				"kind":"build",
+			}
+		},
+		{
+			"label": "make_release",
+			"type": "shell",
+			"command": "mingw32-make ver=release",
+			"problemMatcher": [],
+		},
+		{
+			"label": "clean",
+			"type": "shell",
+			"command": "mingw32-make clean",
+			"problemMatcher": []
+		}
+	]
+}

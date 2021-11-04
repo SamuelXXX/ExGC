@@ -1,0 +1,11 @@
+{
+    "configurations": [
+        {
+            "name": "path settings",
+            "includePath": [
+                "${default}"
+            ]
+        }
+    ],
+    "version": 4
+}
