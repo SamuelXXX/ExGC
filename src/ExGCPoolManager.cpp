@@ -1,17 +1,15 @@
-#include "ExGCPool.h"
+#include "ExGC.h"
 
 namespace exgc
 {
-    ExGCGenerationPool generation1(1024);
-
-    ExGCGenerationPool::ExGCGenerationPool(uint32_t size)
+    GCPoolManager::GCPoolManager(uint32_t size) : m_visitor(this)
     {
         head = new GCPoolHeader[size];
         tail = head + size;
         current = head;
     }
 
-    void ExGCGenerationPool::AddItem(GCPoolItemBase *item)
+    void GCPoolManager::AddObject(GCObject *item)
     {
         current->m_item = item;
         current->owner = this;
@@ -21,7 +19,7 @@ namespace exgc
         current++;
     }
 
-    void ExGCGenerationPool::DestroyItem(GCPoolItemBase *item)
+    void GCPoolManager::RemoveObject(GCObject *item)
     {
         GCPoolHeader *item_header = item->m_header;
         // In this pool and no more reference found
@@ -34,19 +32,8 @@ namespace exgc
         }
     }
 
-    void ExGCGenerationPool::Collect()
+    void GCPoolManager::Collect()
     {
         
-    }
-
-    inline void GCIncRef(GCPoolItemBase *ptr)
-    {
-        ++ptr->m_refcnt;
-    }
-
-    inline void GCDecRef(GCPoolItemBase *ptr)
-    {
-        if (--ptr->m_refcnt == 0)
-            ptr->m_header->owner->DestroyItem(ptr);
     }
 }
