@@ -5,12 +5,13 @@
 #include <assert.h>
 #include <memory>
 #include <vector>
+#include <iostream>
 
 namespace exgc
 {
     class GCPoolManager;
     class GCObject;
-    template<class T>
+    template <class T>
     class Ref;
 
     struct GCPoolHeader // ***Defination Complete
@@ -25,82 +26,107 @@ namespace exgc
         GCPoolHeader *head;
         GCPoolHeader *tail;
         GCPoolHeader *current;
-        GCPoolVisitor m_visitor;
 
     public:
-        GCPoolManager()=default;
+        GCPoolManager() = delete;
         GCPoolManager(uint32_t);
 
     public:
-        void AddObject(GCObject *);
-        void RemoveObject(GCObject *);
-        void Collect();
+        void Push(GCObject *);    // Push a GCObject into pool to manage this object
+        void Kick(GCObject *); // Disconnect GCObject to this pool
+        GCObject *Pop(); // Pop tail GCObject before free or transfer out
+        void CollectPool(); // Collect all cycle reference inside this pool
+
+    public:
         inline bool Contain(GCPoolHeader *header)
         {
-            return header>=this->head && header<this->current;
+            return header >= this->head && header < this->current;
+        }
+
+        inline bool IsEmpty()
+        {
+            return current == head;
+        }
+
+        inline bool IsFull()
+        {
+            return current == tail;
+        }
+
+        inline size_t Size()
+        {
+            return static_cast<size_t>(current-head);
+        }
+
+        inline size_t ReservedSize()
+        {
+            return static_cast<size_t>(tail-current);
         }
     };
 
-    class GCGenerationManager
+    class GCGenerationManager final
     {
         GCPoolManager m_gen1;
         GCPoolManager m_gen2;
         GCPoolManager m_gen3;
 
-        private:
+    private:
         GCGenerationManager();
-        GCGenerationManager(const GCGenerationManager&)=delete;
+        GCGenerationManager(const GCGenerationManager &) = delete;
+        void add(GCObject *);
 
-        public:
-        static GCGenerationManager* GetInstance();
-        void Add(GCObject *);
-        void Remove(GCObject *);
+    public:
+        static GCGenerationManager *GetInstance();
+        void Collect(int);
+
+        friend class GCObject;
     };
 
     class GCObject // ***Defination Complete
     {
         GCPoolHeader *m_header;
         uint32_t m_refcnt;
-
+        uint32_t test_number;
         public:
+        inline void DecTempRefcnt()
+        {
+            m_header->temp_refcnt--;
+        }
+        
+
+    public:
         void *operator new(std::size_t);
-        void operator delete(void *ptr);
+        void operator delete(void *ptr); // Not allowed to delete GCObject Manually  
 
-        public:
-        virtual void TraceReference(GCPoolVisitor& v);
-        static void GCIncRef(GCObject* ptr);
-        static void GCDecRef(GCObject* ptr);
+    public:
+        virtual void GCTrackReference();
+        static void GCIncRef(GCObject *ptr);
+        static void GCDecRef(GCObject *ptr);
 
-        public:
-        GCObject(){}; //Do Nothing
+    public:
+        GCObject()=default; //Do Nothing
 
         friend class GCPoolManager;
+        friend void transfer(GCPoolHeader *, GCPoolHeader *);
     };
 
-    class GCPoolVisitor // ****Defination Complete
+    inline void transfer(GCPoolHeader *dst, GCPoolHeader *src)
     {
-        GCPoolManager *owner;
-        public:
-        GCPoolVisitor(GCPoolManager *owner):owner(owner){}
-
-        public:
-        template <class T>
-        void Trace(const Ref<T>&);
-    };
-
-    template <class T>
-    void GCPoolVisitor::Trace(const Ref<T>& ref)
-    {
-        GCPoolHeader *header=ref.m_object_ptr.m_header;
-        if(owner->Contain(header))// Refered a object in same pool
-            --header->temp_refcnt; 
+        dst->temp_refcnt=src->temp_refcnt;
+        dst->m_item=src->m_item;
+        dst->m_item->m_header=dst;
     }
 
+    class IReferenceType
+    {
+    public:
+        virtual void Resolve() = 0;
+    };
     template <class T>
-    class Ref final // ** Defination Complete
+    class Ref final : IReferenceType // ** Defination Complete
     {
         T *m_object_ptr;
-        
+
     public:
         Ref<T>()
         {
@@ -149,7 +175,7 @@ namespace exgc
 
             if (m_object_ptr != nullptr)
                 GCObject::GCIncRef(m_object_ptr);
-            
+
             return *this;
         }
 
@@ -185,7 +211,15 @@ namespace exgc
             return m_object_ptr;
         }
 
-        friend class GCPoolVisitor;
+    public:
+        void Resolve() override
+        {
+            if (m_object_ptr != nullptr)
+            {
+                m_object_ptr->DecTempRefcnt();
+            }
+        }
+
         friend class GCObject;
     };
 }

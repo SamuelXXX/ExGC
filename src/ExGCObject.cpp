@@ -4,6 +4,8 @@ namespace exgc
 {
     void GCObject::GCIncRef(GCObject *ptr)
     {
+        if(ptr->m_header==nullptr) // Not managed yet!
+            GCGenerationManager::GetInstance()->add(ptr); // Add this pointer to maintaining pool
         ++ptr->m_refcnt;
     }
 
@@ -11,30 +13,27 @@ namespace exgc
     {
         if (--ptr->m_refcnt == 0)
         {
-            ptr->m_header->owner->RemoveObject(ptr);
-            delete ptr;
-        }
-            
+            ptr->m_header->owner->Kick(ptr); // Kick self out from pool;
+            delete ptr;// Safely free this object
+        } 
     }
 
-    void GCObject::TraceReference(GCPoolVisitor& v)
+    void GCObject::GCTrackReference()
     {
-
+        throw "GCTrackReference method not implemented!!!";
     }
 
     void *GCObject::operator new(std::size_t size)
     {
+        // Assign space and make connection to pool
         GCObject *ptr=(GCObject *)std::malloc(size);
-
-        if(ptr!=nullptr)
-            GCGenerationManager::GetInstance()->Add(ptr); // Add this pointer to maintaining area
-        
         return ptr;
     }
 
-    void GCObject::operator delete(void *ptr)
+    void GCObject::operator delete(void *ptr) // Safety gurantee
     {
-        GCGenerationManager::GetInstance()->Remove((GCObject *)ptr); // Add this pointer from maintaining area
+        GCObject *gc_ptr=(GCObject *)ptr;
+        assert(gc_ptr->m_refcnt==0);
         std::free(ptr);
     }
 }
