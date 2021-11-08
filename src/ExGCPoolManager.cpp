@@ -73,7 +73,7 @@ namespace exgc
             ++header;
         }
         std::size_t size_changed=prev_size-Size();
-        GCLog(nullptr, std::to_string(size_changed)+" Objects is Collected!");
+        GCLog(nullptr, std::to_string(size_changed)+" Objects are Collected!");
     }
 
     void GCPoolManager::Profile()
@@ -81,10 +81,14 @@ namespace exgc
         std::cout<<"\tCapacity:"<<Capacity()<<std::endl;
         std::cout<<"\tSize:"<<Size()<<std::endl;
         std::cout<<"\tReservedSize:"<<ReservedSize()<<std::endl;
-        std::cout<<"\tManaged Objects>>>>>>>>>>"<<std::endl;
-        for(auto header=head;header!=current;++header)
+        if(!IsEmpty())
         {
-            std::cout<<"\t\t"<<static_cast<size_t>(header-head)<<":"<<header->m_item<<" \t\tRef:"<<header->m_item->m_refcnt<<std::endl;
+            std::cout<<"\t>>>>>>>>>>>>>>>>>>>>"<<std::endl;
+            for(auto header=head;header!=current;++header)
+            {
+                std::cout<<"\t\t"<<static_cast<size_t>(header-head)<<":"<<header->m_item<<" \t\tRef:"<<header->m_item->m_refcnt<<std::endl;
+            }
+            std::cout<<"\t<<<<<<<<<<<<<<<<<<<<"<<std::endl;
         }
     }
 }

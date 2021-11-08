@@ -6,7 +6,7 @@ using namespace exgc;
 int main()
 {
 	cout<<"Program bits:"<<sizeof(int*)*8<<endl;
-	exgc::testbench::simple::Test();
+	exgc::testbench::circular_reference::Test();
 	getchar();
 	return 0;
 }
