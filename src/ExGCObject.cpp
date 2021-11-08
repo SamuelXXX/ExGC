@@ -1,4 +1,5 @@
 #include "ExGC.h"
+#include<string>
 
 namespace exgc
 {
@@ -13,6 +14,7 @@ namespace exgc
     {
         if (--ptr->m_refcnt == 0)
         {
+            GCLog(ptr, "Kill GCObject due to reference reduced to 0");
             ptr->m_header->owner->Kick(ptr); // Kick self out from pool;
             delete ptr;// Safely free this object
         } 

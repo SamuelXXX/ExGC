@@ -14,6 +14,24 @@ namespace exgc
     template <class T>
     class Ref;
 
+    inline void GCLog(GCObject *obj,const char * c_str)
+    {
+        if(obj==nullptr)
+        {
+            std::cout<<"[GCLOG] >>>>>>>"<<c_str<<std::endl;
+        }
+        else
+        {
+            std::cout<<"[GCLOG] >>>>>>>"<<obj<<":"<<c_str<<std::endl;
+        }
+        
+    }
+
+    inline void GCLog(GCObject *obj,const std::string& str)
+    {
+        GCLog(obj, str.c_str());
+    }
+
     struct GCPoolHeader // ***Defination Complete
     {
         GCPoolManager *owner;
@@ -38,6 +56,21 @@ namespace exgc
         void CollectPool(); // Collect all cycle reference inside this pool
 
     public:
+        inline size_t HeaderPoolMemory()
+        {
+            size_t total_size=0;
+            total_size+=Capacity()*sizeof(GCPoolHeader);
+            return total_size;
+        }
+
+        inline size_t TotalMemory()
+        {
+            size_t total_size=0;
+            total_size+=sizeof(*this);
+            total_size+=Capacity()*sizeof(GCPoolHeader);
+            return total_size;
+        }
+
         inline bool Contain(GCPoolHeader *header)
         {
             return header >= this->head && header < this->current;
@@ -62,6 +95,14 @@ namespace exgc
         {
             return static_cast<size_t>(tail-current);
         }
+
+        inline size_t Capacity()
+        {
+            return static_cast<size_t>(tail-head);
+        }
+    
+    public: // Debug interfaces
+        void DebugLog();
     };
 
     class GCGenerationManager final
@@ -78,6 +119,16 @@ namespace exgc
     public:
         static GCGenerationManager *GetInstance();
         void Collect(int);
+        void DebugLog(int index)
+        {
+            switch(index)
+            {
+                case 1:m_gen1.DebugLog();break;
+                case 2:m_gen2.DebugLog();break;
+                case 3:m_gen3.DebugLog();break;
+                default:break;
+            }
+        }
 
         friend class GCObject;
     };
@@ -87,7 +138,7 @@ namespace exgc
         GCPoolHeader *m_header;
         uint32_t m_refcnt;
         uint32_t test_number;
-        public:
+    public:
         inline void DecTempRefcnt()
         {
             m_header->temp_refcnt--;
@@ -222,6 +273,16 @@ namespace exgc
 
         friend class GCObject;
     };
+
+    inline void DebugLog(int gen_index)
+    {
+        GCGenerationManager::GetInstance()->DebugLog(gen_index);
+    }
+
+    inline void Collect(int gen_index)
+    {
+        GCGenerationManager::GetInstance()->Collect(gen_index);
+    }
 }
 
 #endif

@@ -1,5 +1,6 @@
 #include "ExGC.h"
 #include<iostream>
+#include<string>
 
 namespace exgc
 {
@@ -72,6 +73,27 @@ namespace exgc
             ++header;
         }
         std::size_t size_changed=prev_size-Size();
-        std::cout<<size_changed<<" Objects is Collected!"<<std::endl;
+        GCLog(nullptr, std::to_string(size_changed)+" Objects is Collected!");
+    }
+
+    void GCPoolManager::DebugLog()
+    {
+        std::cout<<std::endl;
+        GCLog(nullptr, "Begin Pool DebugLog ##################################################");
+        std::cout<<"TotalMemory:"<<TotalMemory()<<std::endl;
+        std::cout<<"HeaderPoolMemory:"<<HeaderPoolMemory()<<std::endl;
+        std::cout<<"Capacity:"<<Capacity()<<std::endl;
+        std::cout<<"Size:"<<Size()<<std::endl;
+        std::cout<<"ReservedSize:"<<ReservedSize()<<std::endl;
+        std::cout<<"IsFull:"<<IsFull()<<std::endl;
+        std::cout<<"IsEmpty:"<<IsEmpty()<<std::endl;
+        std::cout<<">>>>>>>>>>Managed Objects<<<<<<<<<<"<<std::endl;
+        for(auto header=head;header!=current;++header)
+        {
+            std::cout<<"Index: "<<static_cast<size_t>(header-head)<<"\t\tAddress:"<<header->m_item<<" \t\tRefCount:"<<header->m_item->m_refcnt<<std::endl;
+        }
+        std::cout<<">>>>>>>>>>End<<<<<<<<<<"<<std::endl;
+        GCLog(nullptr, "Finish Pool DebugLog ##################################################");
+        std::cout<<std::endl;
     }
 }
