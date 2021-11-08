@@ -14,7 +14,7 @@ namespace exgc
         return _gc_manager;
     }
 
-    GCGenerationManager::GCGenerationManager():m_gen1(1024),m_gen2(2048),m_gen3(4096)
+    GCGenerationManager::GCGenerationManager():m_gen1(1024),m_gen2(2048),m_gen3(4096),m_objectsmem(0)
     {
 
     }

@@ -65,7 +65,7 @@ namespace exgc
             {
                 GCObject *obj=header->m_item;
                 Kick(obj);
-                obj->m_refcnt=0;
+                obj->m_refcnt=0; // Set reference to 0 before deleting GCObject
                 delete obj;
             }
             if(header==current)
@@ -76,24 +76,15 @@ namespace exgc
         GCLog(nullptr, std::to_string(size_changed)+" Objects is Collected!");
     }
 
-    void GCPoolManager::DebugLog()
+    void GCPoolManager::Profile()
     {
-        std::cout<<std::endl;
-        GCLog(nullptr, "Begin Pool DebugLog ##################################################");
-        std::cout<<"TotalMemory:"<<TotalMemory()<<std::endl;
-        std::cout<<"HeaderPoolMemory:"<<HeaderPoolMemory()<<std::endl;
-        std::cout<<"Capacity:"<<Capacity()<<std::endl;
-        std::cout<<"Size:"<<Size()<<std::endl;
-        std::cout<<"ReservedSize:"<<ReservedSize()<<std::endl;
-        std::cout<<"IsFull:"<<IsFull()<<std::endl;
-        std::cout<<"IsEmpty:"<<IsEmpty()<<std::endl;
-        std::cout<<">>>>>>>>>>Managed Objects<<<<<<<<<<"<<std::endl;
+        std::cout<<"\tCapacity:"<<Capacity()<<std::endl;
+        std::cout<<"\tSize:"<<Size()<<std::endl;
+        std::cout<<"\tReservedSize:"<<ReservedSize()<<std::endl;
+        std::cout<<"\tManaged Objects>>>>>>>>>>"<<std::endl;
         for(auto header=head;header!=current;++header)
         {
-            std::cout<<"Index: "<<static_cast<size_t>(header-head)<<"\t\tAddress:"<<header->m_item<<" \t\tRefCount:"<<header->m_item->m_refcnt<<std::endl;
+            std::cout<<"\t\t"<<static_cast<size_t>(header-head)<<":"<<header->m_item<<" \t\tRef:"<<header->m_item->m_refcnt<<std::endl;
         }
-        std::cout<<">>>>>>>>>>End<<<<<<<<<<"<<std::endl;
-        GCLog(nullptr, "Finish Pool DebugLog ##################################################");
-        std::cout<<std::endl;
     }
 }

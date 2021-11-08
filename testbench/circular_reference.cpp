@@ -42,10 +42,10 @@ namespace exgc::testbench::circular_reference
         for(int i=0;i<10;++i)
 		    unit_test();
 	
-        exgc::DebugLog(1);
+        exgc::Profile(1);
         getchar();
         exgc::Collect(1);
-        exgc::DebugLog(1);
+        exgc::Profile(1);
         getchar();
     }
 }

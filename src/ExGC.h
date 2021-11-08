@@ -6,6 +6,7 @@
 #include <memory>
 #include <vector>
 #include <iostream>
+#include <string>
 
 namespace exgc
 {
@@ -101,8 +102,8 @@ namespace exgc
             return static_cast<size_t>(tail-head);
         }
     
-    public: // Debug interfaces
-        void DebugLog();
+    public: // Profile interfaces
+        void Profile();
     };
 
     class GCGenerationManager final
@@ -110,6 +111,7 @@ namespace exgc
         GCPoolManager m_gen1;
         GCPoolManager m_gen2;
         GCPoolManager m_gen3;
+        size_t m_objectsmem;
 
     private:
         GCGenerationManager();
@@ -119,15 +121,27 @@ namespace exgc
     public:
         static GCGenerationManager *GetInstance();
         void Collect(int);
-        void DebugLog(int index)
+        
+    public:
+        void MemoryProfile()
         {
+            GCLog(nullptr, "GCObjectMem:"+std::to_string(m_objectsmem));
+            GCLog(nullptr, "Gen1_Mem:"+std::to_string(m_gen1.TotalMemory()));
+            GCLog(nullptr, "Gen2_Mem:"+std::to_string(m_gen2.TotalMemory()));
+            GCLog(nullptr, "Gen3_Mem:"+std::to_string(m_gen3.TotalMemory()));
+        }
+
+        void GenerationProfile(int index)
+        {
+            GCLog(nullptr, "GenProfile-"+std::to_string(index));
             switch(index)
             {
-                case 1:m_gen1.DebugLog();break;
-                case 2:m_gen2.DebugLog();break;
-                case 3:m_gen3.DebugLog();break;
+                case 1:m_gen1.Profile();break;
+                case 2:m_gen2.Profile();break;
+                case 3:m_gen3.Profile();break;
                 default:break;
             }
+            GCLog(nullptr, "EndGenProfile-"+std::to_string(index));
         }
 
         friend class GCObject;
@@ -274,9 +288,10 @@ namespace exgc
         friend class GCObject;
     };
 
-    inline void DebugLog(int gen_index)
+    inline void Profile(int gen_index)
     {
-        GCGenerationManager::GetInstance()->DebugLog(gen_index);
+        GCGenerationManager::GetInstance()->MemoryProfile();
+        GCGenerationManager::GetInstance()->GenerationProfile(gen_index);
     }
 
     inline void Collect(int gen_index)
