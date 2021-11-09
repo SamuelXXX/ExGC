@@ -3,24 +3,27 @@
 
 namespace exgc
 {
-    void GCObject::GCIncRef(GCObject *ptr)
+    void GCObject::IncRef()
     {
-        if(ptr->m_header==nullptr) // Not managed yet!
-            GCGenerationManager::GetInstance()->add(ptr); // Add this pointer to maintaining pool
-        ++ptr->m_refcnt;
+        ++m_refcnt;
     }
 
-    void GCObject::GCDecRef(GCObject *ptr)
+    void GCObject::DecRef()
     {
-        if (--ptr->m_refcnt == 0)
-        {
-            GCLog(ptr, "Kill GCObject due to reference reduced to 0");
-            ptr->m_header->owner->Kick(ptr); // Kick self out from pool;
-            delete ptr;// Safely free this object
-        } 
+        --m_refcnt;
     }
 
-    void GCObject::GCTrackReference()
+    void GCObject::ResetRef()
+    {
+        m_refcnt=0;
+    }
+
+    uint32_t GCObject::GetRefCount()
+    {
+        return m_refcnt;
+    }
+
+    void GCObject::GCTrackReference(GCPoolVisitor& visitor)
     {
         throw "GCTrackReference method not implemented!!!";
     }
@@ -28,22 +31,27 @@ namespace exgc
     void *GCObject::operator new(std::size_t size)
     {
         // Assign space and make connection to pool
-        void *ptr=std::malloc(size+sizeof(size_t));
-        *((size_t *)ptr)=size;
+        void *ptr=std::malloc(size+sizeof(GCPoolHeader));
+        GCPoolHeader *header_ptr=(GCPoolHeader *)ptr;
+        GCObject *ob_ptr=(GCObject *)((uint8_t *)ptr+sizeof(GCPoolHeader));
 
-        GCObject *gc_ptr=(GCObject *)((char *)ptr+sizeof(size_t));
-        GCGenerationManager::GetInstance()->m_objectsmem+=size;
-        return gc_ptr;
+        header_ptr->obSize=size;
+        header_ptr->obGenId=InvalidGenID;
+
+        GCGenerationManager::GetInstance()->makeWild(header_ptr);
+
+        return ob_ptr;
     }
 
-    void GCObject::operator delete(void *ptr) // Safety gurantee
+    void GCObject::operator delete(void *ptr) // Call destructor, kick from pool and free space
     {
-        GCObject *gc_ptr=(GCObject *)ptr;
-        assert(gc_ptr->m_refcnt==0);
+        GCObject *ob_ptr=(GCObject *)ptr;
+        GCPoolHeader *header_ptr=(GCPoolHeader *)((uint8_t *)ptr-sizeof(GCPoolHeader));
+        assert(ob_ptr->m_refcnt<=0);
         
-        // Back to real allocated pointer
-        ptr=(char *)ptr-sizeof(size_t);
-        GCGenerationManager::GetInstance()->m_objectsmem-=*((size_t *)ptr);
-        std::free(ptr);
+        if(header_ptr->obGenId!=InvalidGenID) // Still in pool
+            GCGenerationManager::GetInstance()->kick(header_ptr);
+
+        std::free(header_ptr);
     }
 }

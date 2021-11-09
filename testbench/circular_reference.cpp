@@ -12,9 +12,9 @@ namespace exgc::testbench::circular_reference
         
         public:
         Ref<B> m_ob;
-        void GCTrackReference() override
+        void GCTrackReference(GCPoolVisitor& v) override
         {
-            m_ob.Resolve();
+            v.Visit(m_ob);
         }
         
     };
@@ -23,9 +23,9 @@ namespace exgc::testbench::circular_reference
     {
         public:
         Ref<A> m_ob;
-        void GCTrackReference() override
+        void GCTrackReference(GCPoolVisitor& v) override
         {
-            m_ob.Resolve();
+            v.Visit(m_ob);
         }
     };
 

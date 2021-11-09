@@ -7,27 +7,15 @@ namespace exgc::testbench::simple
 {
     class A:public GCObject
     {
-        Ref<A> m_self;
         char m_blob[1000*1024*1024];
         public:
-        // A(const char *);
-
-        void PrintName()
+        Ref<A> anotherRef;
+        void GCTrackReference(GCPoolVisitor& v) override
         {
-            // std::cout<<m_blob<<std::endl;
+            v.Visit(anotherRef);
         }
 
-        void GCTrackReference() override
-        {
-            m_self.Resolve();
-        }
     };
-
-    // A::A(const char *name)
-    // {
-    //     strcpy(m_blob,name);
-    //     m_self=this;
-    // }
 
     Ref<A> g_A;
 
@@ -41,8 +29,10 @@ namespace exgc::testbench::simple
     void unit_test()
     {
         g_A=new A();
-        Ref<A> l_A=new A();
-        Ref<A> rg_A=g_A; 
+        g_A->anotherRef=new A();
+        g_A->anotherRef->anotherRef=new A();
+        g_A->anotherRef->anotherRef->anotherRef=g_A->anotherRef;
+
         //exgc::Collect(1);
         wait_show_debug();
     }
@@ -52,7 +42,6 @@ namespace exgc::testbench::simple
         unit_test();
 
         wait_show_debug();
-        g_A->PrintName();
         g_A=nullptr;
 
         wait_show_debug();
