@@ -118,7 +118,7 @@ namespace exgc
             if(cursorPtr->extRefcnt>0)
             {
                 cursorPtr->trackState.trackRoot=true;
-                cursorPtr->trackState.reachable=false;
+                cursorPtr->trackState.reachable=true;
             }
             else
             {

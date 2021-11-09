@@ -33,7 +33,8 @@ namespace exgc::testbench::simple
         g_A->anotherRef->anotherRef=new A();
         g_A->anotherRef->anotherRef->anotherRef=g_A->anotherRef;
 
-        //exgc::Collect(1);
+        wait_show_debug();
+        exgc::Collect(1);
         wait_show_debug();
     }
 
