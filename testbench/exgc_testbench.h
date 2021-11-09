@@ -5,12 +5,12 @@ namespace exgc::testbench
 {
     namespace simple
     {
-        void Test();
+        bool Test();
     }
 
     namespace circular_reference
     {
-        void Test();
+        bool Test();
     }
 }
 

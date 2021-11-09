@@ -69,9 +69,33 @@ namespace exgc
         return m_currentMemory;
     }
 
+    size_t GCPoolManager::CalcGCObjectMemory()
+    {
+        size_t memSize=0;
+        GCPoolHeader *cursorPtr=head;
+        while (cursorPtr)
+        {
+            memSize+=cursorPtr->obSize;
+            cursorPtr=cursorPtr->next;
+        }
+        return memSize; 
+    }
+
     size_t GCPoolManager::GetSize()
     {
         return m_currentSize;
+    }
+
+    size_t GCPoolManager::CalcSize()
+    {
+        size_t size=0;
+        GCPoolHeader *cursorPtr=head;
+        while (cursorPtr)
+        {
+            ++size;
+            cursorPtr=cursorPtr->next;
+        }
+        return size; 
     }
 
     bool GCPoolManager::Contain(GCPoolHeader *node)
@@ -167,6 +191,9 @@ namespace exgc
 
     void GCPoolManager::Profile()
     {
+        assert(CalcGCObjectMemory()==m_currentMemory);
+        assert(CalcSize()==m_currentSize);
+        
         std::cout<<"\tMaxSize:"<<m_maxSize<<std::endl;
         std::cout<<"\tSize:"<<m_currentSize<<std::endl;
         std::cout<<"\tMemory:"<<m_currentMemory<<std::endl;

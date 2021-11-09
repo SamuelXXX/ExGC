@@ -29,23 +29,28 @@ namespace exgc::testbench::circular_reference
         }
     };
 
+    Ref<A> gA;
+
     void unit_test()
     {
         Ref<A> a=new A();
         Ref<B> b=new B();
+        gA=a;
         a->m_ob=b;
         b->m_ob=a;
     }
 
-    void Test()
+    bool Test()
     {
         for(int i=0;i<10;++i)
 		    unit_test();
-	
         exgc::Profile(1);
-        getchar();
+
         exgc::Collect(1);
         exgc::Profile(1);
-        getchar();
+        gA=nullptr;
+        exgc::Collect(1);
+        exgc::Profile(1);
+        return exgc::GCGenerationManager::GetInstance()->GetGenerationMemory(1)==0;
     }
 }

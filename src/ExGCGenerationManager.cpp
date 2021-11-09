@@ -126,4 +126,30 @@ namespace exgc
     {
         m_refCounterFlag=flag;
     }
+
+    size_t GCGenerationManager::GetGenerationSize(uint8_t genId)
+    {
+        switch(genId)
+        {
+            case 0:return m_wild.GetSize();
+            case 1:return m_gen1.GetSize();
+            case 2:return m_gen2.GetSize();
+            case 3:return m_gen3.GetSize();
+            default:return 0;
+        }
+        return 0;
+    }
+
+    size_t GCGenerationManager::GetGenerationMemory(uint8_t genId)
+    {
+        switch(genId)
+        {
+            case 0:return m_wild.GetGCObjectMemory();
+            case 1:return m_gen1.GetGCObjectMemory();
+            case 2:return m_gen2.GetGCObjectMemory();
+            case 3:return m_gen3.GetGCObjectMemory();
+            default:return 0;
+        }
+        return 0;
+    }
 }

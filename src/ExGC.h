@@ -79,7 +79,9 @@ namespace exgc
 
     public:
         size_t GetGCObjectMemory(); // Get allocated GCObjects mem size
+        size_t CalcGCObjectMemory(); // Iterating all GCObjects and calculate memory size
         size_t GetSize(); // Current amount of GCObject allocated in this
+        size_t CalcSize(); // Iterating all GCObjects and calculate link list size
         bool Contain(GCPoolHeader *); // Check if header in this generation
     
     public:
@@ -116,9 +118,11 @@ namespace exgc
         void GCDecRef(GCObject *);
         void ToggleReferenceCounter(bool flag);
         
-    public:
+    public: // Profiling Interface
         void MemoryProfile(); // Profiling Memory Occupation
         void GenerationProfile(int index); // Profiling Generation
+        size_t GetGenerationSize(uint8_t genId);
+        size_t GetGenerationMemory(uint8_t genId);
 
         friend class GCObject;
     };
