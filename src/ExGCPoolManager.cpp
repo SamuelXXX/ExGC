@@ -1,6 +1,7 @@
 #include "ExGC.h"
 #include<iostream>
 #include<string>
+#include<time.h>
 
 namespace exgc
 {
@@ -114,6 +115,8 @@ namespace exgc
             return;
 
         size_t sizeBeforeCollect=m_currentSize;
+        clock_t timeBeforeCollect=clock();
+        clock_t timeFree=0;
 
         // Initialize all external reference count value
         GCPoolHeader *cursorPtr=head;
@@ -178,7 +181,9 @@ namespace exgc
             {
                 delNode(cursorPtr);
                 obPtr->ResetRef(); // Reset reference before delete target GCObject
+                clock_t temClock=clock();
                 delete obPtr;
+                timeFree+=clock()-temClock;
             }
 
             cursorPtr=nextPtr;
@@ -186,7 +191,9 @@ namespace exgc
         GCGenerationManager::GetInstance()->ToggleReferenceCounter(true); // Resume auto inc-dec refcnt
 
         size_t sizeCollected=sizeBeforeCollect-m_currentSize;
-        GCLog(nullptr,std::to_string(sizeCollected)+" Objects Collected in Generation "+std::to_string(m_genId));        
+        clock_t timeCollected=clock()-timeBeforeCollect;
+        double time=(timeCollected-timeFree)*1.0/CLOCKS_PER_SEC*1000;
+        GCLog(nullptr,std::to_string(sizeCollected)+" Objects Collected in Generation "+std::to_string(m_genId)+" within "+std::to_string(time)+" milliseconds!");        
     }
 
     void GCPoolManager::Profile()

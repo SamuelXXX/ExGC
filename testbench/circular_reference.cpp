@@ -8,13 +8,17 @@ namespace exgc::testbench::circular_reference
     class B;
     class A:public GCObject
     {
-        char m_bulk[1024*1024*100];
+        char m_bulk[10];
         
         public:
         Ref<B> m_ob;
         void GCTrackReference(GCPoolVisitor& v) override
         {
             v.Visit(m_ob);
+        }
+        ~A()
+        {
+            
         }
         
     };
@@ -26,6 +30,11 @@ namespace exgc::testbench::circular_reference
         void GCTrackReference(GCPoolVisitor& v) override
         {
             v.Visit(m_ob);
+        }
+
+        ~B()
+        {
+
         }
     };
 
@@ -42,13 +51,19 @@ namespace exgc::testbench::circular_reference
 
     bool Test()
     {
-        for(int i=0;i<10;++i)
-		    unit_test();
-        exgc::Profile(1);
-        AssertGCSize(1,20);
-        exgc::Collect(1);
-        exgc::Profile(1);
-        AssertGCSize(1,2);
+        int count=2000000;
+        for(int j=0;j<20;j++)
+        {
+            for(int i=0;i<count;++i)
+		        unit_test();
+            
+            exgc::Collect(1);
+            // exgc::Profile(1);
+            AssertGCSize(1,2);
+        }
+        
+        // exgc::Profile(1);
+        // AssertGCSize(1,2);
         gA=nullptr;
         exgc::Collect(1);
         exgc::Profile(1);
