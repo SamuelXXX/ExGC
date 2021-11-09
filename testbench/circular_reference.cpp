@@ -1,5 +1,5 @@
 #include<iostream>
-#include"../src/ExGC.h"
+#include"exgc_testbench.h"
 
 using namespace exgc;
 
@@ -45,12 +45,13 @@ namespace exgc::testbench::circular_reference
         for(int i=0;i<10;++i)
 		    unit_test();
         exgc::Profile(1);
-
+        AssertGCSize(1,20);
         exgc::Collect(1);
         exgc::Profile(1);
+        AssertGCSize(1,2);
         gA=nullptr;
         exgc::Collect(1);
         exgc::Profile(1);
-        return exgc::GCGenerationManager::GetInstance()->GetGenerationMemory(1)==0;
+        return GCSizeCondition(1,0);
     }
 }

@@ -1,5 +1,5 @@
 #include<iostream>
-#include"../src/ExGC.h"
+#include"exgc_testbench.h"
 
 using namespace exgc;
 
@@ -32,9 +32,10 @@ namespace exgc::testbench::simple
     bool Test()
     {
         unit_test();
+        AssertGCSize(1,3);
         g_A=nullptr;
         exgc::Collect(1);
         exgc::Profile(1);
-        return exgc::GCGenerationManager::GetInstance()->GetGenerationMemory(1)==0;
+        return GCSizeCondition(1,0);
     }
 }
