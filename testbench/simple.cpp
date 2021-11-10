@@ -27,7 +27,7 @@ namespace ExGC::Testbench::Simple
         g_A->anotherRef->anotherRef->anotherRef=g_A->anotherRef;
     }
 
-    bool Test()
+    void Test()
     {
         unit_test();
         AssertGCSize(1,3);
@@ -37,6 +37,5 @@ namespace ExGC::Testbench::Simple
         AssertGCSize(2,0);
         AssertGCSize(3,0);
         // exgc::Profile();
-        return GCSizeCondition(1,0);
     }
 }

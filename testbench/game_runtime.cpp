@@ -11,7 +11,7 @@ namespace ExGC::Testbench::GameRuntime
         // entity->PrintName();
     }
 
-    bool Test()
+    void Test()
     {
         for (int i = 0; i < 1000; i++)
             unit_test(i);
@@ -21,6 +21,5 @@ namespace ExGC::Testbench::GameRuntime
         AssertGCSize(1,0);
         AssertGCSize(2,0);
         AssertGCSize(3,0);
-        return GCSizeCondition(1, 0);
     }
 }

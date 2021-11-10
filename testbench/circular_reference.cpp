@@ -50,7 +50,7 @@ namespace ExGC::Testbench::CircularReference
         b->m_ob=a;
     }
 
-    bool Test()
+    void Test()
     {
         int count=20;
         for(int j=0;j<20;j++)
@@ -67,6 +67,5 @@ namespace ExGC::Testbench::CircularReference
         AssertGCSize(1,0);
         AssertGCSize(2,0);
         AssertGCSize(3,0);
-        return GCSizeCondition(1,0);
     }
 }

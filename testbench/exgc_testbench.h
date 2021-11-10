@@ -1,26 +1,34 @@
 #ifndef __EXGC_TESTBENCH_H__
 #define __EXGC_TESTBENCH_H__
 
-#include<assert.h>
+#include<iostream>
 #include"../src/ExGC.h"
 
+#define ExGCAssert(expression,message)  if(!(expression))\
+                                        {\
+                                            std::cout<<"ExGCAssertion Failed!!! @"<<__FILE__<<":"<<__LINE__<<std::endl;\
+                                            std::cout<<message<<std::endl;\
+                                            std::cout<<"Press any key to exit!"<<std::endl;\
+                                            getchar();\
+                                            exit(0);\
+                                        }
 #define GCSizeCondition(genId,size) (ExGC::GCCore::GetInstance()->GetGenerationSize((genId))==(size))
-#define AssertGCSize(genId,size) assert(ExGC::GCCore::GetInstance()->GetGenerationSize((genId))==(size))
+#define AssertGCSize(genId,size) ExGCAssert(ExGC::GCCore::GetInstance()->GetGenerationSize((genId))==(size),"GC Generation Pool Size Assertion Failed!")
 namespace ExGC::Testbench
 {
     namespace Simple
     {
-        bool Test();
+        void Test();
     }
 
     namespace CircularReference
     {
-        bool Test();
+        void Test();
     }
 
     namespace GameRuntime
     {
-        bool Test();
+        void Test();
     }
 }
 
