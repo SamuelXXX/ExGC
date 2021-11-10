@@ -3,6 +3,11 @@
 
 #include<stdint.h>
 
+#define BeginCaptureRefWithBase(ClassName,BaseClassName) void ClassName::GCTrackReference(GCPoolVisitor& v):BaseClassName::GCTrackReference(v){
+#define BeginCaptureRef(ClassName) void ClassName::GCTrackReference(GCPoolVisitor& v){
+#define CaptureRef(var) v.Visit(var);
+#define EndCaptureRef }
+
 namespace exgc
 {
     class GCPoolVisitor;

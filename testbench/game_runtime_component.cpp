@@ -7,8 +7,7 @@ namespace exgc::testbench::game_runtime
         m_owner = owner;
     }
 
-    void Component::GCTrackReference(GCPoolVisitor &v)
-    {
-        v.Visit(m_owner);
-    }
+    BeginCaptureRef(Component)
+        CaptureRef(m_owner)
+    EndCaptureRef
 }

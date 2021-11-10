@@ -22,8 +22,7 @@ namespace exgc::testbench::game_runtime
         }
     }
 
-    void Entity::GCTrackReference(GCPoolVisitor &v)
-    {
-        v.Visit(m_components);
-    }
+    BeginCaptureRef(Entity)
+        CaptureRef(m_components)
+    EndCaptureRef
 }

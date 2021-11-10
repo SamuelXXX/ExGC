@@ -2,6 +2,7 @@
 #define __EXGC_POOL_VISITOR_H__
 
 #include <stdint.h>
+#include <initializer_list>
 
 namespace exgc
 {
