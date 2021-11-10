@@ -8,7 +8,7 @@
             "name": "g++.exe - Build and debug active file",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceRoot}\\.build\\debug\\cpplab.exe",
+            "program": "${workspaceRoot}\\.build\\debug\\ExGCTestbench.exe",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceRoot}\\.build\\debug",

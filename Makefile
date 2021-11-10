@@ -19,7 +19,7 @@ TARGET_PATH = .build\$(ver)
 LIB_PATH = $(TARGET_PATH)\libs
 
 # target .exe .o .lib files
-EXE_NAME = cpplab
+EXE_NAME = ExGCTestbench
 EXE_FILE = $(TARGET_PATH)/$(EXE_NAME).exe
 
 EXGC_OBJ_FILES:=$(patsubst $(EXGC_SRC_PATH)/%.cpp, $(EXGC_OBJ_PATH)/%.o, $(wildcard $(EXGC_SRC_PATH)/*.cpp))
