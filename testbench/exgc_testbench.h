@@ -4,8 +4,8 @@
 #include<assert.h>
 #include"../src/ExGC.h"
 
-#define GCSizeCondition(genId,size) (exgc::GCGenerationManager::GetInstance()->GetGenerationSize((genId))==(size))
-#define AssertGCSize(genId,size) assert(exgc::GCGenerationManager::GetInstance()->GetGenerationSize((genId))==(size))
+#define GCSizeCondition(genId,size) (exgc::GCCore::GetInstance()->GetGenerationSize((genId))==(size))
+#define AssertGCSize(genId,size) assert(exgc::GCCore::GetInstance()->GetGenerationSize((genId))==(size))
 namespace exgc::testbench
 {
     namespace simple

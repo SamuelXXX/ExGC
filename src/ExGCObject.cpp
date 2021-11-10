@@ -1,5 +1,5 @@
 #include "ExGC.h"
-#include<string>
+#include<assert.h>
 
 namespace exgc
 {
@@ -38,7 +38,7 @@ namespace exgc
         header_ptr->obSize=size;
         header_ptr->obGenId=InvalidGenID;
 
-        GCGenerationManager::GetInstance()->makeWild(header_ptr);
+        GCCore::GetInstance()->makeWild(header_ptr);
 
         return ob_ptr;
     }
@@ -50,7 +50,7 @@ namespace exgc
         assert(ob_ptr->m_refcnt<=0);
         
         if(header_ptr->obGenId!=InvalidGenID) // Still in pool
-            GCGenerationManager::GetInstance()->kick(header_ptr);
+            GCCore::GetInstance()->kick(header_ptr);
 
         std::free(header_ptr);
     }

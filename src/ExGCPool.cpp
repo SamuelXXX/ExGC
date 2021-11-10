@@ -2,10 +2,11 @@
 #include<iostream>
 #include<string>
 #include<time.h>
+#include<assert.h>
 
 namespace exgc
 {
-    GCPoolManager::GCPoolManager(uint8_t genId,size_t maxSize):
+    GCPool::GCPool(uint8_t genId,size_t maxSize):
     m_genId(genId),
     m_maxSize(maxSize),
     head(nullptr),
@@ -16,7 +17,7 @@ namespace exgc
 
     }
 
-    GCPoolHeader *GCPoolManager::addNode(GCPoolHeader *newNode)
+    GCPoolHeader *GCPool::addNode(GCPoolHeader *newNode)
     {
         newNode->obGenId=m_genId;
         m_currentSize+=1;
@@ -39,7 +40,7 @@ namespace exgc
         return newNode;
     }
 
-    GCPoolHeader *GCPoolManager::delNode(GCPoolHeader *nodeDelete)
+    GCPoolHeader *GCPool::delNode(GCPoolHeader *nodeDelete)
     {
         assert(nodeDelete->obGenId==m_genId&&m_currentSize!=0);
 
@@ -65,12 +66,12 @@ namespace exgc
         return nextNode;
     }
 
-    size_t GCPoolManager::GetGCObjectMemory()
+    size_t GCPool::GetGCObjectMemory()
     {
         return m_currentMemory;
     }
 
-    size_t GCPoolManager::CalcGCObjectMemory()
+    size_t GCPool::CalcGCObjectMemory()
     {
         size_t memSize=0;
         GCPoolHeader *cursorPtr=head;
@@ -82,12 +83,12 @@ namespace exgc
         return memSize; 
     }
 
-    size_t GCPoolManager::GetSize()
+    size_t GCPool::GetSize()
     {
         return m_currentSize;
     }
 
-    size_t GCPoolManager::CalcSize()
+    size_t GCPool::CalcSize()
     {
         size_t size=0;
         GCPoolHeader *cursorPtr=head;
@@ -99,17 +100,17 @@ namespace exgc
         return size; 
     }
 
-    bool GCPoolManager::Contain(GCPoolHeader *node)
+    bool GCPool::Contain(GCPoolHeader *node)
     {
         return node->obGenId==m_genId;
     }
 
-    bool GCPoolManager::ShouldGC()
+    bool GCPool::ShouldGC()
     {
         return m_currentSize>=m_maxSize;
     }
 
-    void GCPoolManager::CollectPool()
+    void GCPool::CollectPool()
     {
         if(m_currentSize==0)
             return;
@@ -170,7 +171,7 @@ namespace exgc
 
         // Deleting unreachable objects
         // Disable auto inc-dec refcnt, or delete operation may cause chain reaction of destructing GCObjects
-        GCGenerationManager::GetInstance()->ToggleReferenceCounter(false); 
+        GCCore::GetInstance()->ToggleReferenceCounter(false); 
         cursorPtr=head;
         while (cursorPtr)
         {
@@ -188,7 +189,7 @@ namespace exgc
 
             cursorPtr=nextPtr;
         }
-        GCGenerationManager::GetInstance()->ToggleReferenceCounter(true); // Resume auto inc-dec refcnt
+        GCCore::GetInstance()->ToggleReferenceCounter(true); // Resume auto inc-dec refcnt
 
         size_t sizeCollected=sizeBeforeCollect-m_currentSize;
         clock_t timeCollected=clock()-timeBeforeCollect;
@@ -196,7 +197,7 @@ namespace exgc
         GCLog(nullptr,std::to_string(sizeCollected)+" Objects Collected in Generation "+std::to_string(m_genId)+" within "+std::to_string(time)+" milliseconds!");        
     }
 
-    void GCPoolManager::Profile()
+    void GCPool::Profile()
     {
         assert(CalcGCObjectMemory()==m_currentMemory);
         assert(CalcSize()==m_currentSize);

@@ -1,37 +1,38 @@
 #include "ExGC.h"
+#include<assert.h>
 
 namespace exgc
 {
-    static GCGenerationManager * _gc_manager=nullptr;
+    static GCCore * _gc_manager=nullptr;
 
-    GCGenerationManager *GCGenerationManager::GetInstance()
+    GCCore *GCCore::GetInstance()
     {
         if(_gc_manager==nullptr)
         {
-            _gc_manager=new GCGenerationManager();
+            _gc_manager=new GCCore();
         }
 
         return _gc_manager;
     }
 
-    GCGenerationManager::GCGenerationManager():m_wild(0,0),m_gen1(1,1024),m_gen2(2,2048),m_gen3(3,0),m_refCounterFlag(true)
+    GCCore::GCCore():m_wild(0,0),m_gen1(1,1024),m_gen2(2,2048),m_gen3(3,0),m_refCounterFlag(true)
     {
 
     }
 
-    void GCGenerationManager::makeWild(GCPoolHeader *header_ptr)
+    void GCCore::makeWild(GCPoolHeader *header_ptr)
     {
         assert(header_ptr->obGenId==InvalidGenID);
         m_wild.addNode(header_ptr);
     }
 
-    void GCGenerationManager::makeManaged(GCPoolHeader *header_ptr)
+    void GCCore::makeManaged(GCPoolHeader *header_ptr)
     {
         m_wild.delNode(header_ptr);
         m_gen1.addNode(header_ptr);
     }
 
-    void GCGenerationManager::ascend(GCPoolHeader *header_ptr)
+    void GCCore::ascend(GCPoolHeader *header_ptr)
     {
         uint8_t curGenId=header_ptr->obGenId;
         switch(curGenId)
@@ -52,7 +53,7 @@ namespace exgc
         }
     }
 
-    void GCGenerationManager::kick(GCPoolHeader *header_ptr)
+    void GCCore::kick(GCPoolHeader *header_ptr)
     {
         uint8_t curGenId=header_ptr->obGenId;
         switch(curGenId)
@@ -65,7 +66,7 @@ namespace exgc
         }
     }
 
-    void GCGenerationManager::GCIncRef(GCObject *ob_ptr)
+    void GCCore::GCIncRef(GCObject *ob_ptr)
     {
         if(m_refCounterFlag)
         {
@@ -78,7 +79,7 @@ namespace exgc
         }
     }
 
-    void GCGenerationManager::GCDecRef(GCObject *ob_ptr)
+    void GCCore::GCDecRef(GCObject *ob_ptr)
     {
         if(m_refCounterFlag)
         {
@@ -90,12 +91,12 @@ namespace exgc
         }
     }
 
-    void GCGenerationManager::Collect(int gen_index)
+    void GCCore::Collect(int gen_index)
     {
         m_gen1.CollectPool(); // for test now
     }
 
-    void GCGenerationManager::MemoryProfile()
+    void GCCore::MemoryProfile()
     {
         size_t wild_mem=m_wild.GetGCObjectMemory();
         size_t gen1_mem=m_gen1.GetGCObjectMemory();
@@ -108,7 +109,7 @@ namespace exgc
         GCLog(nullptr, "Gen3_Mem:"+std::to_string(gen3_mem));
     }
 
-    void GCGenerationManager::GenerationProfile(int index)
+    void GCCore::GenerationProfile(int index)
     {
         GCLog(nullptr, "GenProfile-"+std::to_string(index));
         switch(index)
@@ -122,12 +123,12 @@ namespace exgc
         GCLog(nullptr, "EndGenProfile-"+std::to_string(index));
     }
 
-    void GCGenerationManager::ToggleReferenceCounter(bool flag)
+    void GCCore::ToggleReferenceCounter(bool flag)
     {
         m_refCounterFlag=flag;
     }
 
-    size_t GCGenerationManager::GetGenerationSize(uint8_t genId)
+    size_t GCCore::GetGenerationSize(uint8_t genId)
     {
         switch(genId)
         {
@@ -140,7 +141,7 @@ namespace exgc
         return 0;
     }
 
-    size_t GCGenerationManager::GetGenerationMemory(uint8_t genId)
+    size_t GCCore::GetGenerationMemory(uint8_t genId)
     {
         switch(genId)
         {
