@@ -2,7 +2,7 @@
 
 namespace exgc
 {
-    void GCPoolVisitor::Visit(GCObject *ob_ptr)
+    void GCPoolVisitor::_visit(GCObject *ob_ptr)
     {
         if(ob_ptr==nullptr)
             return;
@@ -12,6 +12,11 @@ namespace exgc
             case TraceIndirectRef:doTraceIndirectRef(ob_ptr);break;
             default:break;
         }
+    }
+
+    void GCPoolVisitor::Visit(IGCReferenceType& ref)
+    {
+        ref.OnRefVisited(*this);
     }
 
     void GCPoolVisitor::doTraceDirectRef(GCObject *ob_ptr)

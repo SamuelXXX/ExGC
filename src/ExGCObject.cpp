@@ -3,11 +3,6 @@
 
 namespace exgc
 {
-    uint32_t GCObject::GetRefCount()
-    {
-        return m_refcnt;
-    }
-
     void GCObject::GCTrackReference(GCPoolVisitor& v)
     {
         throw "GCTrackReference method not implemented!!!";
@@ -20,6 +15,7 @@ namespace exgc
         GCPoolHeader *header_ptr=(GCPoolHeader *)ptr;
         GCObject *ob_ptr=(GCObject *)((uint8_t *)ptr+sizeof(GCPoolHeader));
 
+        header_ptr->obRefcnt=0;
         header_ptr->obSize=size;
         header_ptr->obGenId=InvalidGenID;
 
@@ -32,7 +28,7 @@ namespace exgc
     {
         GCObject *ob_ptr=(GCObject *)ptr;
         GCPoolHeader *header_ptr=(GCPoolHeader *)((uint8_t *)ptr-sizeof(GCPoolHeader));
-        assert(ob_ptr->m_refcnt<=0);
+        assert(header_ptr->obRefcnt==0);
         
         if(header_ptr->obGenId!=InvalidGenID) // Still in pool
             GCCore::GetInstance()->kick(header_ptr);

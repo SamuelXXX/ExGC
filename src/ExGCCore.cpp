@@ -79,8 +79,8 @@ namespace exgc
     {
         if(m_refCounterFlag)
         {
-            ++ob_ptr->m_refcnt;
             GCPoolHeader *headerPtr=ExTractHeaderPtr(ob_ptr);
+            ++headerPtr->obRefcnt;
             if(headerPtr->obGenId==0) // Capture wild GCObject pointer to managed pool
             {
                 makeManaged(headerPtr);
@@ -92,8 +92,9 @@ namespace exgc
     {
         if(m_refCounterFlag)
         {
-            --ob_ptr->m_refcnt;
-            if(ob_ptr->GetRefCount()==0)
+            GCPoolHeader *headerPtr=ExTractHeaderPtr(ob_ptr);
+            --headerPtr->obRefcnt;
+            if(headerPtr->obRefcnt==0)
             {
                 delete ob_ptr;
             }

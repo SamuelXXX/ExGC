@@ -173,7 +173,7 @@ namespace exgc
         while (cursorPtr)
         {
             GCObject *obPtr=ExTractObjectPtr(cursorPtr);
-            cursorPtr->extRefcnt=obPtr->GetRefCount();
+            cursorPtr->extRefcnt=cursorPtr->obRefcnt;
             cursorPtr=cursorPtr->next;
         }
 
@@ -230,7 +230,7 @@ namespace exgc
             if(!cursorPtr->trackState.reachable)
             {
                 delNode(cursorPtr);
-                obPtr->m_refcnt=0; // Reset reference before delete target GCObject
+                cursorPtr->obRefcnt=0; // Reset reference before delete target GCObject
                 clock_t temClock=clock();
                 delete obPtr;
                 timeFree+=clock()-temClock;
@@ -262,7 +262,7 @@ namespace exgc
             while(cursor)
             {
                 GCObject *ob_ptr=ExTractObjectPtr(cursor);
-                std::cout<<"\t\t"<<index<<":"<<ob_ptr<<" \t\tRef:"<<ob_ptr->GetRefCount()<<std::endl;
+                std::cout<<"\t\t"<<index<<":"<<ob_ptr<<" \t\tRef:"<<cursor->obRefcnt<<std::endl;
                 cursor=cursor->next;
                 ++index;
             }

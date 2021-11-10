@@ -19,6 +19,7 @@ namespace exgc
         GCPoolHeader *next;
         
         size_t obSize;
+        uint32_t obRefcnt;
         union 
         {
             uint32_t extRefcnt;

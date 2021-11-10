@@ -3,8 +3,15 @@
 
 namespace exgc
 {
+    class GCPoolVisitor;
+    class IGCReferenceType
+    {
+        public:
+        virtual void OnRefVisited(GCPoolVisitor& v)=0;
+    };
+
     template <class T>
-    class Ref final  // ** Defination Complete
+    class Ref final:public IGCReferenceType  // ** Defination Complete
     {
         T *m_object_ptr;
 
@@ -47,7 +54,7 @@ namespace exgc
         }
 
     public:
-        // Copy Assign
+        // Direct Assign
         Ref<T> &operator=(T *ptr)
         {
             if (m_object_ptr != nullptr)
@@ -91,6 +98,23 @@ namespace exgc
         T *operator->()
         {
             return m_object_ptr;
+        }
+
+        T &operator*()
+        {
+            return *(m_object_ptr);
+        }
+
+        // Equal Operation
+        bool operator==(const Ref<T> &other)
+        {
+            return m_object_ptr==other.m_object_ptr;
+        }
+
+    public:
+        void OnRefVisited(GCPoolVisitor& v) override
+        {
+            v._visit(m_object_ptr);
         }
 
         friend class GCObject;

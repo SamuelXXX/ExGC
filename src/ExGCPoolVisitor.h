@@ -6,8 +6,7 @@
 namespace exgc
 {
     class GCObject;
-    template <class T>
-    class Ref;
+    class IGCReferenceType;
 
     class GCPoolVisitor
     {
@@ -20,13 +19,8 @@ namespace exgc
         enum VisitStrategy{TraceDirectRef=0, TraceIndirectRef};
         GCPoolVisitor(uint8_t strategy,uint8_t genId):visitStrategy(strategy),visitGenId(genId){};
         
-        void Visit(GCObject *);
-
-        template<class T>
-        void Visit(const Ref<T>& ptr_ref)
-        {
-            this->Visit(ptr_ref.m_object_ptr);
-        }
+        void _visit(GCObject *);
+        void Visit(IGCReferenceType&);
     };
 }
 

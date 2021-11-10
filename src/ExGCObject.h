@@ -6,31 +6,14 @@
 namespace exgc
 {
     class GCPoolVisitor;
-    class GCPool;
-    class GCCore;
-
     class GCObject // ***Defination Complete
     {
-        uint32_t m_refcnt;
-
     public:
         void *operator new(size_t);
         void operator delete(void *ptr); // Call destructor, kick from pool and free space
         
-
     public:
-        virtual void GCTrackReference(GCPoolVisitor&);
-
-    public:
-        
-        uint32_t GetRefCount();
-
-    public:
-        GCObject()=default; //Do Nothing
-        virtual ~GCObject()=default;
-
-        friend class GCPool;
-        friend class GCCore;
+        virtual void GCTrackReference(GCPoolVisitor&)=0;
     };
 }
 

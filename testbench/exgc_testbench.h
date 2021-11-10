@@ -17,6 +17,11 @@ namespace exgc::testbench
     {
         bool Test();
     }
+
+    namespace custom_container
+    {
+        bool Test();
+    }
 }
 
 #endif
