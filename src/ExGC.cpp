@@ -1,6 +1,6 @@
 #include"ExGC.h"
 
-namespace exgc
+namespace ExGC
 {
     void ProfileGeneration(int gen_index)
     {

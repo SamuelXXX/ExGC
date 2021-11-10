@@ -4,7 +4,7 @@
 #include<time.h>
 #include<assert.h>
 
-namespace exgc
+namespace ExGC
 {
     GCPool::GCPool(uint8_t genId,size_t maxSize):
     m_genId(genId),

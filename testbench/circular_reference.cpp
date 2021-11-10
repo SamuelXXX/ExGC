@@ -2,9 +2,9 @@
 #include"exgc_testbench.h"
 #include<vector>
 
-using namespace exgc;
+using namespace ExGC;
 
-namespace exgc::testbench::circular_reference
+namespace ExGC::Testbench::CircularReference
 {
     class B;
     class A:public GCObject
@@ -59,11 +59,11 @@ namespace exgc::testbench::circular_reference
 		        unit_test();
         }
         
-        exgc::Profile();
+        ExGC::Profile();
         AssertGCSize(1,800);
         refAList.clear();
-        exgc::Collect();
-        exgc::Profile();
+        ExGC::Collect();
+        ExGC::Profile();
         AssertGCSize(1,0);
         AssertGCSize(2,0);
         AssertGCSize(3,0);

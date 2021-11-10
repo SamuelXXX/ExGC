@@ -4,7 +4,7 @@
 #include "exgc_testbench.h"
 #include<vector>
 
-namespace exgc::testbench::game_runtime
+namespace ExGC::Testbench::GameRuntime
 {
     template <class T>
     class Vector : public std::vector<Ref<T>>, public IGCReferenceType

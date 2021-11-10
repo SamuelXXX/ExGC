@@ -4,21 +4,21 @@
 #include<assert.h>
 #include"../src/ExGC.h"
 
-#define GCSizeCondition(genId,size) (exgc::GCCore::GetInstance()->GetGenerationSize((genId))==(size))
-#define AssertGCSize(genId,size) assert(exgc::GCCore::GetInstance()->GetGenerationSize((genId))==(size))
-namespace exgc::testbench
+#define GCSizeCondition(genId,size) (ExGC::GCCore::GetInstance()->GetGenerationSize((genId))==(size))
+#define AssertGCSize(genId,size) assert(ExGC::GCCore::GetInstance()->GetGenerationSize((genId))==(size))
+namespace ExGC::Testbench
 {
-    namespace simple
+    namespace Simple
     {
         bool Test();
     }
 
-    namespace circular_reference
+    namespace CircularReference
     {
         bool Test();
     }
 
-    namespace game_runtime
+    namespace GameRuntime
     {
         bool Test();
     }

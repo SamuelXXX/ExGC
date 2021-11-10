@@ -4,7 +4,7 @@
 #include<stdint.h>
 #include"ExGCPool.h"
 
-namespace exgc
+namespace ExGC
 {
     struct GCPoolHeader;
     class GCObject;

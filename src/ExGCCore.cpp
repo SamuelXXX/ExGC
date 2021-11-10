@@ -1,7 +1,7 @@
 #include "ExGC.h"
 #include<assert.h>
 
-namespace exgc
+namespace ExGC
 {
     static GCCore * _gc_core=nullptr;
 

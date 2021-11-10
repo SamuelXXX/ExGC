@@ -8,7 +8,7 @@
 #define CaptureRef(var) v.Visit(var);
 #define EndCaptureRef }
 
-namespace exgc
+namespace ExGC
 {
     class GCPoolVisitor;
     class GCObject // ***Defination Complete

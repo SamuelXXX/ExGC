@@ -2,7 +2,7 @@
 #define __EXGC_POOL_H__
 #include<stdint.h>
 
-namespace exgc
+namespace ExGC
 {
     class GCCore;
 

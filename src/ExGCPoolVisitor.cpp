@@ -1,6 +1,6 @@
 #include"ExGC.h"
 
-namespace exgc
+namespace ExGC
 {
     void GCPoolVisitor::_visit(GCObject *ob_ptr)
     {

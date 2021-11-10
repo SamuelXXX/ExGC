@@ -1,6 +1,6 @@
 #include"game_runtime.h"
 
-namespace exgc::testbench::game_runtime
+namespace ExGC::Testbench::GameRuntime
 {
     void Entity::AddComponent(Ref<Component> component)
     {

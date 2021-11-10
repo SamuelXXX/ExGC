@@ -1,7 +1,7 @@
 #ifndef __EXGC_REF_TYPE_H__
 #define __EXGC_REF_TYPE_H__
 
-namespace exgc
+namespace ExGC
 {
     // inline void GCLog(GCObject *obj,const char * c_str);
     class GCPoolVisitor;

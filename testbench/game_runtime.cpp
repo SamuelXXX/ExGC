@@ -2,7 +2,7 @@
 #include "exgc_testbench.h"
 #include "game_runtime.h"
 
-namespace exgc::testbench::game_runtime
+namespace ExGC::Testbench::GameRuntime
 {
     void unit_test(int index)
     {
@@ -16,8 +16,8 @@ namespace exgc::testbench::game_runtime
         for (int i = 0; i < 1000; i++)
             unit_test(i);
         // exgc::Profile();
-        exgc::Collect();
-        exgc::Profile();
+        ExGC::Collect();
+        ExGC::Profile();
         AssertGCSize(1,0);
         AssertGCSize(2,0);
         AssertGCSize(3,0);

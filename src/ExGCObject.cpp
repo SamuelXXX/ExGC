@@ -1,7 +1,7 @@
 #include "ExGC.h"
 #include<assert.h>
 
-namespace exgc
+namespace ExGC
 {
     void GCObject::GCTrackReference(GCPoolVisitor& v)
     {

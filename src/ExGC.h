@@ -14,7 +14,7 @@
 #define ExTractObjectPtr(header_ptr) ((GCObject *)((uint8_t *)header_ptr+sizeof(GCPoolHeader)))
 #define InvalidGenID 99
 
-namespace exgc
+namespace ExGC
 {
     inline void GCLog(GCObject *obj,const char * c_str)
     {

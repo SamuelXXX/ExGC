@@ -1,9 +1,9 @@
 #include<iostream>
 #include"exgc_testbench.h"
 
-using namespace exgc;
+using namespace ExGC;
 
-namespace exgc::testbench::simple
+namespace ExGC::Testbench::Simple
 {
     class A:public GCObject
     {
@@ -32,7 +32,7 @@ namespace exgc::testbench::simple
         unit_test();
         AssertGCSize(1,3);
         g_A=nullptr;
-        exgc::Collect();
+        ExGC::Collect();
         AssertGCSize(1,0);
         AssertGCSize(2,0);
         AssertGCSize(3,0);
