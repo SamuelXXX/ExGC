@@ -14,10 +14,6 @@ namespace exgc::testbench::simple
         {
             v.Visit(anotherRef);
         }
-        ~A()
-        {
-            anotherRef=nullptr;
-        }
 
     };
 
@@ -29,16 +25,17 @@ namespace exgc::testbench::simple
         g_A->anotherRef=new A();
         g_A->anotherRef->anotherRef=new A();
         g_A->anotherRef->anotherRef->anotherRef=g_A->anotherRef;
-
-        // exgc::Collect();
     }
 
     bool Test()
     {
         unit_test();
-        // AssertGCSize(1,3);
+        AssertGCSize(1,3);
         g_A=nullptr;
         exgc::Collect();
+        AssertGCSize(1,0);
+        AssertGCSize(2,0);
+        AssertGCSize(3,0);
         // exgc::Profile();
         return GCSizeCondition(1,0);
     }

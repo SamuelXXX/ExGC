@@ -52,22 +52,21 @@ namespace exgc::testbench::circular_reference
 
     bool Test()
     {
-        int count=200;
+        int count=20;
         for(int j=0;j<20;j++)
         {
             for(int i=0;i<count;++i)
 		        unit_test();
-            
-            // exgc::Collect(1);
-            // exgc::Profile(1);
-            // AssertGCSize(1,2);
         }
         
         exgc::Profile();
-        // AssertGCSize(1,2);
+        AssertGCSize(1,800);
         refAList.clear();
         exgc::Collect();
         exgc::Profile();
+        AssertGCSize(1,0);
+        AssertGCSize(2,0);
+        AssertGCSize(3,0);
         return GCSizeCondition(1,0);
     }
 }

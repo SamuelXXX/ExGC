@@ -9,7 +9,7 @@ int main()
 	cout<<"Program bits:"<<sizeof(int*)*8<<endl;
 	assert(exgc::testbench::simple::Test());
 	assert(exgc::testbench::circular_reference::Test());
-	assert(exgc::testbench::custom_container::Test());
+	assert(exgc::testbench::game_runtime::Test());
 	std::cout<<"All Unit Testing Passed!!!!!!!!!!!!!!!!!!!!!!!!!!"<<std::endl;
 	getchar();
 	return 0;

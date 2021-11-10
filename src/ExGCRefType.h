@@ -3,6 +3,7 @@
 
 namespace exgc
 {
+    // inline void GCLog(GCObject *obj,const char * c_str);
     class GCPoolVisitor;
     class IGCReferenceType
     {
