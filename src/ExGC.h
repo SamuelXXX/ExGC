@@ -34,8 +34,10 @@ namespace exgc
         GCLog(obj, str.c_str());
     }
 
-    void Profile(int);
-    void Collect(int);
+    void ProfileGeneration(int);
+    void Profile();
+    void CollectGeneration(int);
+    void Collect();
 }
 
 #endif

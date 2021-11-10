@@ -8,7 +8,7 @@ namespace exgc
 {
     GCPool::GCPool(uint8_t genId,size_t maxSize):
     m_genId(genId),
-    m_maxSize(maxSize),
+    m_collectThreshold(maxSize),
     head(nullptr),
     tail(nullptr),
     m_currentSize(0),
@@ -66,6 +66,55 @@ namespace exgc
         return nextNode;
     }
 
+    GCPoolHeader *GCPool::clearNodes()
+    {
+        GCPoolHeader *retHeader=head;
+
+        // Reset this link list pool
+        head=tail=nullptr;
+        m_currentMemory=0;
+        m_currentSize=0;
+
+        // Reset genId of all nodes to InvalidGenID
+        GCPoolHeader *cursor=retHeader;
+        while (cursor)
+        {
+            cursor->obGenId=InvalidGenID;
+            cursor=cursor->next;
+        }
+        
+        return retHeader;
+    }
+
+    GCPoolHeader *GCPool::linkNodes(GCPoolHeader *anotherHeader)
+    {
+        if(anotherHeader==nullptr)
+            return nullptr;
+        
+        if(head==nullptr)
+        {
+            head=anotherHeader;
+        }
+        else
+        {
+            tail->next=anotherHeader;
+            anotherHeader->prev=tail;
+        }
+
+        tail=anotherHeader;
+        while (true)
+        {
+            tail->obGenId=m_genId;
+            m_currentSize+=1;
+            m_currentMemory+=tail->obSize;
+            if(tail->next==nullptr)
+                break;
+            tail=tail->next;
+        }
+        
+        return tail;
+    }
+
     size_t GCPool::GetGCObjectMemory()
     {
         return m_currentMemory;
@@ -107,7 +156,7 @@ namespace exgc
 
     bool GCPool::ShouldGC()
     {
-        return m_currentSize>=m_maxSize;
+        return m_currentSize>=m_collectThreshold;
     }
 
     void GCPool::CollectPool()
@@ -181,7 +230,7 @@ namespace exgc
             if(!cursorPtr->trackState.reachable)
             {
                 delNode(cursorPtr);
-                obPtr->ResetRef(); // Reset reference before delete target GCObject
+                obPtr->m_refcnt=0; // Reset reference before delete target GCObject
                 clock_t temClock=clock();
                 delete obPtr;
                 timeFree+=clock()-temClock;
@@ -202,7 +251,7 @@ namespace exgc
         assert(CalcGCObjectMemory()==m_currentMemory);
         assert(CalcSize()==m_currentSize);
         
-        std::cout<<"\tMaxSize:"<<m_maxSize<<std::endl;
+        std::cout<<"\tMaxSize:"<<m_collectThreshold<<std::endl;
         std::cout<<"\tSize:"<<m_currentSize<<std::endl;
         std::cout<<"\tMemory:"<<m_currentMemory<<std::endl;
         if(m_currentSize>0)

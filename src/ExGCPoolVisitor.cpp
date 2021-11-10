@@ -4,6 +4,8 @@ namespace exgc
 {
     void GCPoolVisitor::Visit(GCObject *ob_ptr)
     {
+        if(ob_ptr==nullptr)
+            return;
         switch(visitStrategy)
         {
             case TraceDirectRef:doTraceDirectRef(ob_ptr);break;

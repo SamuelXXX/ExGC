@@ -3,22 +3,17 @@
 
 namespace exgc
 {
-    static GCCore * _gc_manager=nullptr;
+    static GCCore * _gc_core=nullptr;
 
     GCCore *GCCore::GetInstance()
     {
-        if(_gc_manager==nullptr)
-        {
-            _gc_manager=new GCCore();
-        }
-
-        return _gc_manager;
+        if(_gc_core==nullptr)
+            _gc_core=new GCCore();
+        
+        return _gc_core;
     }
 
-    GCCore::GCCore():m_wild(0,0),m_gen1(1,1024),m_gen2(2,2048),m_gen3(3,0),m_refCounterFlag(true)
-    {
-
-    }
+    GCCore::GCCore():m_wild(0,0),m_gen1(1,1024),m_gen2(2,2048),m_gen3(3,4096),m_refCounterFlag(true){}
 
     void GCCore::makeWild(GCPoolHeader *header_ptr)
     {
@@ -30,6 +25,20 @@ namespace exgc
     {
         m_wild.delNode(header_ptr);
         m_gen1.addNode(header_ptr);
+        if(m_gen1.ShouldGC())
+        {
+            m_gen1.CollectPool();
+            m_gen2.linkNodes(m_gen1.clearNodes());
+            if(m_gen2.ShouldGC())
+            {
+                m_gen2.CollectPool();
+                m_gen3.linkNodes(m_gen2.clearNodes());
+                if(m_gen3.ShouldGC()) // The 3rd generation is lazy triggered
+                {
+                    m_gen3.CollectPool(); 
+                }
+            } 
+        }
     }
 
     void GCCore::ascend(GCPoolHeader *header_ptr)
@@ -70,7 +79,7 @@ namespace exgc
     {
         if(m_refCounterFlag)
         {
-            ob_ptr->IncRef();
+            ++ob_ptr->m_refcnt;
             GCPoolHeader *headerPtr=ExTractHeaderPtr(ob_ptr);
             if(headerPtr->obGenId==0) // Capture wild GCObject pointer to managed pool
             {
@@ -83,7 +92,7 @@ namespace exgc
     {
         if(m_refCounterFlag)
         {
-            ob_ptr->DecRef();
+            --ob_ptr->m_refcnt;
             if(ob_ptr->GetRefCount()==0)
             {
                 delete ob_ptr;
@@ -93,7 +102,46 @@ namespace exgc
 
     void GCCore::Collect(int gen_index)
     {
-        m_gen1.CollectPool(); // for test now
+        // m_gen1.CollectPool(); // for test now
+        if(gen_index<1||gen_index>3)
+        {
+            GCLog(nullptr,"Invalid generation index when calling Collect");
+            return;
+        }
+
+        if(gen_index==1) // Only Collect Generation 1
+        {
+            m_gen1.CollectPool();
+            m_gen2.linkNodes(m_gen1.clearNodes());
+            if(m_gen2.ShouldGC())
+            {
+                m_gen2.CollectPool();
+                m_gen3.linkNodes(m_gen2.clearNodes());
+                if(m_gen3.ShouldGC()) 
+                {
+                    m_gen3.CollectPool(); 
+                }
+            }
+        }
+        else if(gen_index==2) // Collect Generation 1 and Generation 2
+        {
+            m_gen1.CollectPool();
+            m_gen2.linkNodes(m_gen1.clearNodes());
+            m_gen2.CollectPool();
+            m_gen3.linkNodes(m_gen2.clearNodes());
+            if(m_gen3.ShouldGC()) 
+            {
+                m_gen3.CollectPool(); 
+            }     
+        }
+        else if(gen_index==3) // Collect all 3 generations
+        {
+            m_gen1.CollectPool();
+            m_gen2.linkNodes(m_gen1.clearNodes());
+            m_gen2.CollectPool();
+            m_gen3.linkNodes(m_gen2.clearNodes());
+            m_gen3.CollectPool();   
+        }
     }
 
     void GCCore::MemoryProfile()

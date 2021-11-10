@@ -30,16 +30,16 @@ namespace exgc::testbench::simple
         g_A->anotherRef->anotherRef=new A();
         g_A->anotherRef->anotherRef->anotherRef=g_A->anotherRef;
 
-        exgc::Collect(1);
+        // exgc::Collect();
     }
 
     bool Test()
     {
         unit_test();
-        AssertGCSize(1,3);
+        // AssertGCSize(1,3);
         g_A=nullptr;
-        exgc::Collect(1);
-        // exgc::Profile(1);
+        exgc::Collect();
+        // exgc::Profile();
         return GCSizeCondition(1,0);
     }
 }

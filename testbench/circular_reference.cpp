@@ -1,5 +1,6 @@
 #include<iostream>
 #include"exgc_testbench.h"
+#include<vector>
 
 using namespace exgc;
 
@@ -8,7 +9,7 @@ namespace exgc::testbench::circular_reference
     class B;
     class A:public GCObject
     {
-        char m_bulk[10];
+        char m_bulk[1024*1024];
         
         public:
         Ref<B> m_ob;
@@ -38,35 +39,35 @@ namespace exgc::testbench::circular_reference
         }
     };
 
-    Ref<A> gA;
+    std::vector<Ref<A>> refAList;
 
     void unit_test()
     {
         Ref<A> a=new A();
         Ref<B> b=new B();
-        gA=a;
+        refAList.push_back(a);
         a->m_ob=b;
         b->m_ob=a;
     }
 
     bool Test()
     {
-        int count=2000000;
+        int count=200;
         for(int j=0;j<20;j++)
         {
             for(int i=0;i<count;++i)
 		        unit_test();
             
-            exgc::Collect(1);
+            // exgc::Collect(1);
             // exgc::Profile(1);
-            AssertGCSize(1,2);
+            // AssertGCSize(1,2);
         }
         
-        // exgc::Profile(1);
+        exgc::Profile();
         // AssertGCSize(1,2);
-        gA=nullptr;
-        exgc::Collect(1);
-        exgc::Profile(1);
+        refAList.clear();
+        exgc::Collect();
+        exgc::Profile();
         return GCSizeCondition(1,0);
     }
 }

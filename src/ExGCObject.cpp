@@ -3,27 +3,12 @@
 
 namespace exgc
 {
-    void GCObject::IncRef()
-    {
-        ++m_refcnt;
-    }
-
-    void GCObject::DecRef()
-    {
-        --m_refcnt;
-    }
-
-    void GCObject::ResetRef()
-    {
-        m_refcnt=0;
-    }
-
     uint32_t GCObject::GetRefCount()
     {
         return m_refcnt;
     }
 
-    void GCObject::GCTrackReference(GCPoolVisitor& visitor)
+    void GCObject::GCTrackReference(GCPoolVisitor& v)
     {
         throw "GCTrackReference method not implemented!!!";
     }

@@ -29,7 +29,7 @@ namespace exgc
     class GCPool final
     {
         const uint8_t m_genId;
-        size_t m_maxSize;
+        size_t m_collectThreshold;
         
         GCPoolHeader *head;
         GCPoolHeader *tail;
@@ -39,9 +39,16 @@ namespace exgc
     
     private: // Node Management
         GCPoolHeader *addNode(GCPoolHeader *); // Insert a header node to pool, return added node
-        GCPoolHeader *delNode(GCPoolHeader *); // delete a header node to pool, return next node of deleted node
+        GCPoolHeader *delNode(GCPoolHeader *); // Delete a header node to pool, return next node of deleted node
+        
+        GCPoolHeader *clearNodes(); // Clear all nodes and return header node pointer
+        GCPoolHeader *linkNodes(GCPoolHeader *); // Link another nodes and return tail node pointer
+    
+    private:
+        void CollectPool(); // Collect all cycle reference inside this pool
+        bool ShouldGC(); // Current size exceed m_maxSize
 
-    public:
+    private:
         GCPool() = delete;
         GCPool(uint8_t, size_t);
 
@@ -51,13 +58,10 @@ namespace exgc
         size_t GetSize(); // Current amount of GCObject allocated in this
         size_t CalcSize(); // Iterating all GCObjects and calculate link list size
         bool Contain(GCPoolHeader *); // Check if header in this generation
-    
-    public:
-        void CollectPool(); // Collect all cycle reference inside this pool
-        bool ShouldGC(); // Current size exceed m_maxSize
+        
         
     
-    public: // Profile interfaces
+    private: // Profile interfaces
         void Profile();
     
     friend class GCCore;

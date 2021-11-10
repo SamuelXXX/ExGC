@@ -7,6 +7,7 @@ namespace exgc
 {
     class GCPoolVisitor;
     class GCPool;
+    class GCCore;
 
     class GCObject // ***Defination Complete
     {
@@ -21,9 +22,7 @@ namespace exgc
         virtual void GCTrackReference(GCPoolVisitor&);
 
     public:
-        void IncRef();
-        void DecRef();
-        void ResetRef();
+        
         uint32_t GetRefCount();
 
     public:
@@ -31,6 +30,7 @@ namespace exgc
         virtual ~GCObject()=default;
 
         friend class GCPool;
+        friend class GCCore;
     };
 }
 

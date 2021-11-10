@@ -9,7 +9,7 @@ namespace exgc
     struct GCPoolHeader;
     class GCObject;
 
-    class GCCore final
+    class GCCore final 
     {
         bool m_refCounterFlag;
         GCPool m_wild;
