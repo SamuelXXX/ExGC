@@ -168,6 +168,9 @@ namespace exgc
         clock_t timeBeforeCollect=clock();
         clock_t timeFree=0;
 
+        // Disable auto inc-dec refcnt, or delete operation or 'GCTrackReference' may cause chain reaction of destructing GCObjects
+        GCCore::GetInstance()->ToggleReferenceCounter(false); 
+
         // Initialize all external reference count value
         GCPoolHeader *cursorPtr=head;
         while (cursorPtr)
@@ -219,8 +222,6 @@ namespace exgc
         }
 
         // Deleting unreachable objects
-        // Disable auto inc-dec refcnt, or delete operation may cause chain reaction of destructing GCObjects
-        GCCore::GetInstance()->ToggleReferenceCounter(false); 
         cursorPtr=head;
         while (cursorPtr)
         {
