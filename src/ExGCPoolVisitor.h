@@ -13,11 +13,11 @@ namespace ExGC
     {
         uint8_t visitStrategy;
         uint8_t visitGenId;
-        void doTraceDirectRef(GCObject *);
-        void doTraceIndirectRef(GCObject *);
+        void doCalExtRefCnt(GCObject *);
+        void doTraceReachable(GCObject *);
         
     public:
-        enum VisitStrategy{TraceDirectRef=0, TraceIndirectRef};
+        enum VisitStrategy{CalExtRefCnt=0, TraceReachable};
         GCPoolVisitor(uint8_t strategy,uint8_t genId):visitStrategy(strategy),visitGenId(genId){};
         
         void _visit(GCObject *);

@@ -39,7 +39,7 @@ $(EXE_FILE) : $(OBJ_FILES)
 	@mkdir $(@D)||:
 	@g++ $^ -o $@
 
-$(EXGC_OBJ_PATH)/%.o : $(EXGC_SRC_PATH)/%.cpp $(EXGC_HEADER_FILES) $(TEST_HEADER_FILES)
+$(EXGC_OBJ_PATH)/%.o : $(EXGC_SRC_PATH)/%.cpp $(TEST_HEADER_FILES)
 	@echo Building ExGC Object : $@
 	@mkdir $(@D)||:
 	@g++ $< $(CXXFLAGS) -o $@ 

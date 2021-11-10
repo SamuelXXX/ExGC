@@ -180,7 +180,7 @@ namespace ExGC
             cursorPtr=cursorPtr->next;
         }
 
-        GCPoolVisitor visitor(GCPoolVisitor::VisitStrategy::TraceDirectRef,m_genId);
+        GCPoolVisitor visitor(GCPoolVisitor::VisitStrategy::CalExtRefCnt,m_genId);
 
         // Generate all external reference count value
         cursorPtr=head;
@@ -209,7 +209,7 @@ namespace ExGC
         }
 
         // Tracking reachable objects
-        visitor=GCPoolVisitor(GCPoolVisitor::VisitStrategy::TraceIndirectRef,m_genId);
+        visitor=GCPoolVisitor(GCPoolVisitor::VisitStrategy::TraceReachable,m_genId);
         cursorPtr=head;
         while (cursorPtr)
         {

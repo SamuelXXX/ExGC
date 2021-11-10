@@ -8,8 +8,8 @@ namespace ExGC
             return;
         switch(visitStrategy)
         {
-            case TraceDirectRef:doTraceDirectRef(ob_ptr);break;
-            case TraceIndirectRef:doTraceIndirectRef(ob_ptr);break;
+            case CalExtRefCnt:doCalExtRefCnt(ob_ptr);break;
+            case TraceReachable:doTraceReachable(ob_ptr);break;
             default:break;
         }
     }
@@ -19,25 +19,25 @@ namespace ExGC
         ref.OnRefVisited(*this);
     }
 
-    void GCPoolVisitor::doTraceDirectRef(GCObject *ob_ptr)
+    void GCPoolVisitor::doCalExtRefCnt(GCObject *ob_ptr)
     {
         GCPoolHeader *headerPtr=ExTractHeaderPtr(ob_ptr);
-        if(headerPtr->obGenId!=visitGenId) // Not in visiting target generation
+        if(headerPtr->obGenId!=visitGenId) // Not in target generation
             return;
         
         --headerPtr->extRefcnt; // Reduce external reference count
     }
 
-    void GCPoolVisitor::doTraceIndirectRef(GCObject *ob_ptr)
+    void GCPoolVisitor::doTraceReachable(GCObject *ob_ptr)
     {
         GCPoolHeader *headerPtr=ExTractHeaderPtr(ob_ptr);
-        if(headerPtr->obGenId!=visitGenId) // Not in visiting target generation
+        if(headerPtr->obGenId!=visitGenId) // Not in target generation
             return;
 
         if(headerPtr->trackState.reachable) // this is a marked node
             return;
         
         headerPtr->trackState.reachable=true; // Mark as a reachable object
-        ob_ptr->GCTrackReference(*this);// Recursive call track reference
+        ob_ptr->GCTrackReference(*this);// Recursive track reachable
     }
 }
