@@ -54,6 +54,9 @@ namespace ExGC::Testbench::AutoCollect
         
         ExGC::Profile();
         list.clear();
+        AssertGCSize(0,4);
+        AssertGCSize(1,16);
+        AssertGCSize(2,80);
         ExGC::Collect();
         AssertTotalGCSize(0);
         std::cout<<"AutoCollect Finish\n"<<std::endl;
