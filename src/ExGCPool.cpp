@@ -11,7 +11,8 @@ namespace ExGC
     head(nullptr),
     tail(nullptr),
     m_currentSize(0),
-    m_currentMemory(0)
+    m_currentMemory(0),
+    m_transferTimes(0)
     {
 
     }
@@ -151,11 +152,6 @@ namespace ExGC
             cursorPtr=cursorPtr->next;
         }
         return size; 
-    }
-
-    bool GCPool::oversized()
-    {
-        return m_currentSize>=m_collectThreshold;
     }
 
     void GCPool::Profile()

@@ -23,8 +23,7 @@ namespace ExGC
         GCCore(const GCCore &) = delete;
         void _collectPool(uint8_t);  // Collect target generation pool
         void _transferPool(uint8_t,uint8_t); // Transfer all nodes of one generation pool to another
-        bool _poolOversized(uint8_t); // Check if one pool's size exceed collecting threshold
-        void _recursiveCollect(uint8_t); // Collect target generation pool and transfer survived nodes to upper generation
+        bool _shouldCollect(uint8_t); // Check if one pool's size exceed collecting threshold
 
     public:
         static GCCore *GetInstance();

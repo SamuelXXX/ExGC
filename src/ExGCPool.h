@@ -31,6 +31,7 @@ namespace ExGC
     {
         const uint8_t m_genId;
         size_t m_collectThreshold;
+        size_t m_transferTimes;
         
         GCPoolHeader *head;
         GCPoolHeader *tail;
@@ -47,8 +48,6 @@ namespace ExGC
         void transfer(GCPool& other); // Transfer all of my nodes to another pool
         GCPoolHeader *_discardAllNodes(); // Clear all my nodes and return header node pointer
         GCPoolHeader *_adoptAllNodes(GCPoolHeader *); // Adopt another link list and return tail node pointer
-        
-        bool oversized(); // Current size exceed collecting threshold
 
     public:
         size_t GetGCObjectMemory(); // Get allocated GCObjects mem size

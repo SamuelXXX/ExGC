@@ -17,13 +17,15 @@ namespace ExGC
     GCCore::GCCore():
     m_wildPool(WildGenID,0),
     m_enableRefCounter(true),
-    m_generations{GCPool(0,1024),GCPool(1,2048),GCPool(2,4096)}
+    m_generations{GCPool(0,1024),GCPool(1,0),GCPool(2,0)}
     {
     }
 
     void GCCore::_collectPool(uint8_t genIndex)
     {
         GCPool& pool=m_generations[genIndex];
+        // Reset transfer times
+        pool.m_transferTimes=0; 
 
         if(pool.m_currentSize==0)
             return;
@@ -115,31 +117,20 @@ namespace ExGC
     void GCCore::_transferPool(uint8_t fromIndex,uint8_t toIndex)
     {
         m_generations[fromIndex].transfer(m_generations[toIndex]);
+        ++m_generations[toIndex].m_transferTimes; // Increase transfer times
     }
 
-    bool GCCore::_poolOversized(uint8_t genIndex)
+    bool GCCore::_shouldCollect(uint8_t genIndex)
     {
-        return m_generations[genIndex].oversized();
-    }
-
-    void GCCore::_recursiveCollect(uint8_t startIndex)
-    {
-        if(startIndex>2)
+        if(m_generations[genIndex].m_transferTimes>=10) // over transfer times
+            return true;
+        
+        if(m_generations[genIndex].m_collectThreshold!=0&&
+        m_generations[genIndex].m_currentSize>m_generations[genIndex].m_collectThreshold) // oversize
         {
-            return;
+            return true;
         }
-        if(startIndex==2)
-        {
-            _collectPool(startIndex);
-            return;
-        }
-            
-        if(_poolOversized(startIndex))
-        {
-            _collectPool(startIndex);
-            _transferPool(startIndex,startIndex+1);
-            _recursiveCollect(startIndex+1);
-        }
+        return false;
     }
 
     void GCCore::GCIncRef(GCObject *ob_ptr)
@@ -152,8 +143,23 @@ namespace ExGC
             {
                 m_wildPool.delNode(headerPtr);
                 m_generations[0].addNode(headerPtr);
+                
+                if(_shouldCollect(0))
+                {
+                    _collectPool(0);
+                    _transferPool(0,1);
 
-                _recursiveCollect(0); // Collect pools from 0 generation
+                    if(_shouldCollect(1))
+                    {
+                        _collectPool(1);
+                        _transferPool(1,2);
+
+                        if(_shouldCollect(2))
+                        {
+                            _collectPool(2);
+                        }
+                    }
+                }
             }
         }
     }
@@ -180,14 +186,43 @@ namespace ExGC
             return;
         }
 
-        // Force collect lower generations
-        for(uint8_t gi=0;gi<gen_index;++gi)
+        if(gen_index==0)
         {
-            _collectPool(gi);
-            _transferPool(gi,gi+1);
+            _collectPool(0);
+            _transferPool(0,1);
+
+            if(_shouldCollect(1))
+            {
+                _collectPool(1);
+                _transferPool(1,2);
+
+                if(_shouldCollect(2))
+                {
+                    _collectPool(2);
+                }
+            }
         }
 
-        _recursiveCollect(gen_index);
+        if(gen_index==1)
+        {
+            _collectPool(0);
+            _transferPool(0,1);
+            _collectPool(1);
+            _transferPool(1,2);
+            if(_shouldCollect(2))
+            {
+                _collectPool(2);
+            }
+        }
+
+        if(gen_index==2)
+        {
+            _collectPool(0);
+            _transferPool(0,1);
+            _collectPool(1);
+            _transferPool(1,2);
+            _collectPool(2);
+        }
     }
 
     void *GCCore::Malloc(size_t size)
