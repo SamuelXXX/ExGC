@@ -30,12 +30,12 @@ namespace ExGC::Testbench::Simple
     void Test()
     {
         unit_test();
-        AssertGCSize(1,3);
+        AssertGCSize(0,3);
         g_A=nullptr;
         ExGC::Collect();
+        AssertGCSize(0,0);
         AssertGCSize(1,0);
         AssertGCSize(2,0);
-        AssertGCSize(3,0);
         // exgc::Profile();
     }
 }

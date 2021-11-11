@@ -18,8 +18,8 @@ namespace ExGC::Testbench::GameRuntime
         // exgc::Profile();
         ExGC::Collect();
         ExGC::Profile();
+        AssertGCSize(0,0);
         AssertGCSize(1,0);
         AssertGCSize(2,0);
-        AssertGCSize(3,0);
     }
 }

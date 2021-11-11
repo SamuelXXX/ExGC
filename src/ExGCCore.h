@@ -4,6 +4,9 @@
 #include<stdint.h>
 #include"ExGCPool.h"
 
+#define InvalidGenID 99
+#define WildGenID    100
+
 namespace ExGC
 {
     struct GCPoolHeader;
@@ -11,26 +14,25 @@ namespace ExGC
 
     class GCCore final 
     {
-        bool m_refCounterFlag;
-        GCPool m_wild;
-        GCPool m_gen1;
-        GCPool m_gen2;
-        GCPool m_gen3;
+        bool m_enableRefCounter;
+        GCPool m_wildPool;
+        GCPool m_generations[3];
 
     private:
         GCCore();
         GCCore(const GCCore &) = delete;
-        void makeWild(GCPoolHeader *); // Make target allocated object a wild pointer
-        void makeManaged(GCPoolHeader *); // Make a wild pointer managed by gc
-        void ascend(GCPoolHeader *); // Increase generation of target object
-        void kick(GCPoolHeader *); // Kick target object from all generation pool
+        void _collectPool(uint8_t);
+        void _transferPool(uint8_t,uint8_t);
+        bool _poolOversized(uint8_t);
+        void _recursiveCollect(uint8_t);
 
     public:
         static GCCore *GetInstance();
-        void Collect(int);
+        void Collect(uint8_t);
         void GCIncRef(GCObject *);
         void GCDecRef(GCObject *);
-        void ToggleReferenceCounter(bool flag);
+        void *Malloc(size_t);
+        void Free(void *);
         
     public: // Profiling Interface
         void MemoryProfile(); // Profiling Memory Occupation

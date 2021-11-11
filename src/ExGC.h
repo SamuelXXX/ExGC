@@ -12,7 +12,6 @@
 
 #define ExTractHeaderPtr(ob_ptr) ((GCPoolHeader *)((uint8_t *)ob_ptr-sizeof(GCPoolHeader)))
 #define ExTractObjectPtr(header_ptr) ((GCObject *)((uint8_t *)header_ptr+sizeof(GCPoolHeader)))
-#define InvalidGenID 99
 
 namespace ExGC
 {

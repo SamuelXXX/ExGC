@@ -60,12 +60,12 @@ namespace ExGC::Testbench::CircularReference
         }
         
         ExGC::Profile();
-        AssertGCSize(1,800);
+        AssertGCSize(0,800);
         refAList.clear();
         ExGC::Collect();
         ExGC::Profile();
+        AssertGCSize(0,0);
         AssertGCSize(1,0);
         AssertGCSize(2,0);
-        AssertGCSize(3,0);
     }
 }

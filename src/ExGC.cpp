@@ -11,9 +11,9 @@ namespace ExGC
     void Profile()
     {
         GCCore::GetInstance()->MemoryProfile();
+        GCCore::GetInstance()->GenerationProfile(0);
         GCCore::GetInstance()->GenerationProfile(1);
         GCCore::GetInstance()->GenerationProfile(2);
-        GCCore::GetInstance()->GenerationProfile(3);
     }
 
     void CollectGeneration(int gen_index)
@@ -23,6 +23,6 @@ namespace ExGC
 
     void Collect()
     {
-        GCCore::GetInstance()->Collect(3);
+        GCCore::GetInstance()->Collect(2);
     }
 }

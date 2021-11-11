@@ -1,5 +1,6 @@
 #include "ExGC.h"
 #include<assert.h>
+#include<time.h>
 
 namespace ExGC
 {
@@ -13,84 +14,153 @@ namespace ExGC
         return _gc_core;
     }
 
-    GCCore::GCCore():m_wild(0,0),m_gen1(1,1024),m_gen2(2,2048),m_gen3(3,4096),m_refCounterFlag(true){}
-
-    void GCCore::makeWild(GCPoolHeader *header_ptr)
+    GCCore::GCCore():
+    m_wildPool(WildGenID,0),
+    m_enableRefCounter(true),
+    m_generations{GCPool(0,1024),GCPool(1,2048),GCPool(2,4096)}
     {
-        assert(header_ptr->obGenId==InvalidGenID);
-        m_wild.addNode(header_ptr);
     }
 
-    void GCCore::makeManaged(GCPoolHeader *header_ptr)
+    void GCCore::_collectPool(uint8_t genIndex)
     {
-        m_wild.delNode(header_ptr);
-        m_gen1.addNode(header_ptr);
-        if(m_gen1.ShouldGC())
+        GCPool& pool=m_generations[genIndex];
+
+        if(pool.m_currentSize==0)
+            return;
+
+        size_t sizeBeforeCollect=pool.m_currentSize;
+        clock_t timeBeforeCollect=clock();
+        clock_t timeFree=0;
+
+        // Disable auto inc-dec refcnt, or delete operation or 'GCTrackReference' may cause chain reaction of destructing GCObjects
+        m_enableRefCounter=false; 
+
+        // Initialize all external reference count value
+        GCPoolHeader *cursorPtr=pool.head;
+        while (cursorPtr)
         {
-            m_gen1.CollectPool();
-            m_gen2.linkNodes(m_gen1.clearNodes());
-            if(m_gen2.ShouldGC())
+            GCObject *obPtr=ExTractObjectPtr(cursorPtr);
+            cursorPtr->extRefcnt=cursorPtr->obRefcnt;
+            cursorPtr=cursorPtr->next;
+        }
+
+        GCPoolVisitor visitor(GCPoolVisitor::VisitStrategy::CalExtRefCnt,pool.m_genId);
+
+        // Generate all external reference count value
+        cursorPtr=pool.head;
+        while (cursorPtr)
+        {
+            GCObject *obPtr=ExTractObjectPtr(cursorPtr);
+            obPtr->GCTrackReference(visitor);
+            cursorPtr=cursorPtr->next;
+        }
+
+        // Initializing tracking state
+        cursorPtr=pool.head;
+        while (cursorPtr)
+        {
+            if(cursorPtr->extRefcnt>0)
             {
-                m_gen2.CollectPool();
-                m_gen3.linkNodes(m_gen2.clearNodes());
-                if(m_gen3.ShouldGC()) // The 3rd generation is lazy triggered
-                {
-                    m_gen3.CollectPool(); 
-                }
-            } 
+                cursorPtr->trackState.trackRoot=true;
+                cursorPtr->trackState.reachable=true;
+            }
+            else
+            {
+                cursorPtr->trackState.trackRoot=false;
+                cursorPtr->trackState.reachable=false;
+            }
+            cursorPtr=cursorPtr->next;
         }
+
+        // Tracking reachable objects
+        visitor=GCPoolVisitor(GCPoolVisitor::VisitStrategy::TraceReachable,pool.m_genId);
+        cursorPtr=pool.head;
+        while (cursorPtr)
+        {
+            GCObject *obPtr=ExTractObjectPtr(cursorPtr);
+            if(cursorPtr->trackState.trackRoot)
+            {
+                obPtr->GCTrackReference(visitor);
+            }
+            cursorPtr=cursorPtr->next;
+        }
+
+        // Deleting unreachable objects
+        cursorPtr=pool.head;
+        while (cursorPtr)
+        {
+            GCObject *obPtr=ExTractObjectPtr(cursorPtr);
+            GCPoolHeader *nextPtr=cursorPtr->next;
+
+            if(!cursorPtr->trackState.reachable)
+            {
+                pool.delNode(cursorPtr);
+                cursorPtr->obRefcnt=0; // Reset reference before delete target GCObject
+                clock_t temClock=clock();
+                delete obPtr;
+                timeFree+=clock()-temClock;
+            }
+
+            cursorPtr=nextPtr;
+        }
+
+        m_enableRefCounter=true; // Resume auto inc-dec refcnt
+
+        size_t sizeCollected=sizeBeforeCollect-pool.m_currentSize;
+        clock_t timeCollected=clock()-timeBeforeCollect;
+        double time=(timeCollected-timeFree)*1.0/CLOCKS_PER_SEC*1000;
+        GCLog(nullptr,std::to_string(sizeCollected)+" Objects Collected in Generation "+std::to_string(pool.m_genId)+" within "+std::to_string(time)+" milliseconds!");  
     }
 
-    void GCCore::ascend(GCPoolHeader *header_ptr)
+    void GCCore::_transferPool(uint8_t fromIndex,uint8_t toIndex)
     {
-        uint8_t curGenId=header_ptr->obGenId;
-        switch(curGenId)
-        {
-            case 0:m_wild.delNode(header_ptr);break;
-            case 1:m_gen1.delNode(header_ptr);break;
-            case 2:m_gen2.delNode(header_ptr);break;
-            case 3:break;
-            default:throw "GenID unknown:"+std::to_string(curGenId);
-        }
-
-        switch(curGenId+1)
-        {
-            case 1:m_gen1.addNode(header_ptr);break;
-            case 2:m_gen2.addNode(header_ptr);break;
-            case 3:m_gen3.addNode(header_ptr);break;
-            default:break;
-        }
+        m_generations[fromIndex].transfer(m_generations[toIndex]);
     }
 
-    void GCCore::kick(GCPoolHeader *header_ptr)
+    bool GCCore::_poolOversized(uint8_t genIndex)
     {
-        uint8_t curGenId=header_ptr->obGenId;
-        switch(curGenId)
+        return m_generations[genIndex].oversized();
+    }
+
+    void GCCore::_recursiveCollect(uint8_t startIndex)
+    {
+        if(startIndex>2)
         {
-            case 0:m_wild.delNode(header_ptr);break;
-            case 1:m_gen1.delNode(header_ptr);break;
-            case 2:m_gen2.delNode(header_ptr);break;
-            case 3:m_gen3.delNode(header_ptr);break;
-            default:break; // Already wild
+            return;
+        }
+        if(startIndex==2)
+        {
+            _collectPool(startIndex);
+            return;
+        }
+            
+        if(_poolOversized(startIndex))
+        {
+            _collectPool(startIndex);
+            _transferPool(startIndex,startIndex+1);
+            _recursiveCollect(startIndex+1);
         }
     }
 
     void GCCore::GCIncRef(GCObject *ob_ptr)
     {
-        if(m_refCounterFlag)
+        if(m_enableRefCounter)
         {
             GCPoolHeader *headerPtr=ExTractHeaderPtr(ob_ptr);
             ++headerPtr->obRefcnt;
-            if(headerPtr->obGenId==0) // Capture wild GCObject pointer to managed pool
+            if(headerPtr->obGenId==WildGenID) // Capture wild GCObject pointer to managed pool
             {
-                makeManaged(headerPtr);
+                m_wildPool.delNode(headerPtr);
+                m_generations[0].addNode(headerPtr);
+
+                _recursiveCollect(0); // Collect pools from 0 generation
             }
         }
     }
 
     void GCCore::GCDecRef(GCObject *ob_ptr)
     {
-        if(m_refCounterFlag)
+        if(m_enableRefCounter)
         {
             GCPoolHeader *headerPtr=ExTractHeaderPtr(ob_ptr);
             --headerPtr->obRefcnt;
@@ -101,105 +171,92 @@ namespace ExGC
         }
     }
 
-    void GCCore::Collect(int gen_index)
+    void GCCore::Collect(uint8_t gen_index)
     {
         // m_gen1.CollectPool(); // for test now
-        if(gen_index<1||gen_index>3)
+        if(gen_index>=3)
         {
             GCLog(nullptr,"Invalid generation index when calling Collect");
             return;
         }
 
-        if(gen_index==1) // Only Collect Generation 1
+        // Force collect lower generations
+        for(uint8_t gi=0;gi<gen_index;++gi)
         {
-            m_gen1.CollectPool();
-            m_gen2.linkNodes(m_gen1.clearNodes());
-            if(m_gen2.ShouldGC())
+            _collectPool(gi);
+            _transferPool(gi,gi+1);
+        }
+
+        _recursiveCollect(gen_index);
+    }
+
+    void *GCCore::Malloc(size_t size)
+    {
+        // Assign space and make connection to pool
+        void *ptr=std::malloc(size+sizeof(GCPoolHeader));
+        GCPoolHeader *header_ptr=(GCPoolHeader *)ptr;
+        GCObject *ob_ptr=(GCObject *)((uint8_t *)ptr+sizeof(GCPoolHeader));
+
+        header_ptr->obRefcnt=0;
+        header_ptr->obSize=size;
+        header_ptr->obGenId=InvalidGenID;
+
+        m_wildPool.addNode(header_ptr);
+
+        return ob_ptr;
+    }
+
+    void GCCore::Free(void * ptr)
+    {
+        GCObject *ob_ptr=(GCObject *)ptr;
+        GCPoolHeader *header_ptr=(GCPoolHeader *)((uint8_t *)ptr-sizeof(GCPoolHeader));
+        assert(header_ptr->obRefcnt==0);
+        
+        if(header_ptr->obGenId!=InvalidGenID) // Still in pool
+        {
+            if(header_ptr->obGenId==WildGenID)
             {
-                m_gen2.CollectPool();
-                m_gen3.linkNodes(m_gen2.clearNodes());
-                if(m_gen3.ShouldGC()) 
-                {
-                    m_gen3.CollectPool(); 
-                }
+                m_wildPool.delNode(header_ptr);
             }
-        }
-        else if(gen_index==2) // Collect Generation 1 and Generation 2
-        {
-            m_gen1.CollectPool();
-            m_gen2.linkNodes(m_gen1.clearNodes());
-            m_gen2.CollectPool();
-            m_gen3.linkNodes(m_gen2.clearNodes());
-            if(m_gen3.ShouldGC()) 
+            else
             {
-                m_gen3.CollectPool(); 
-            }     
+                m_generations[header_ptr->obGenId].delNode(header_ptr);
+            }
+            
         }
-        else if(gen_index==3) // Collect all 3 generations
-        {
-            m_gen1.CollectPool();
-            m_gen2.linkNodes(m_gen1.clearNodes());
-            m_gen2.CollectPool();
-            m_gen3.linkNodes(m_gen2.clearNodes());
-            m_gen3.CollectPool();   
-        }
+            
+        std::free(header_ptr);
     }
 
     void GCCore::MemoryProfile()
     {
-        size_t wild_mem=m_wild.GetGCObjectMemory();
-        size_t gen1_mem=m_gen1.GetGCObjectMemory();
-        size_t gen2_mem=m_gen2.GetGCObjectMemory();
-        size_t gen3_mem=m_gen3.GetGCObjectMemory();
-        GCLog(nullptr, "TotalMem:"+std::to_string(wild_mem+gen1_mem+gen2_mem+gen3_mem));
-        GCLog(nullptr, "Wild_Mem:"+std::to_string(wild_mem));
-        GCLog(nullptr, "Gen1_Mem:"+std::to_string(gen1_mem));
-        GCLog(nullptr, "Gen2_Mem:"+std::to_string(gen2_mem));
-        GCLog(nullptr, "Gen3_Mem:"+std::to_string(gen3_mem));
+        size_t totalMem=m_wildPool.GetGCObjectMemory();
+        for(int gi=0;gi<3;gi++)
+        {
+            totalMem+=m_generations[gi].GetGCObjectMemory();
+        }
+        GCLog(nullptr, "TotalMem:"+std::to_string(totalMem));
+        GCLog(nullptr, "Wild_Mem:"+std::to_string(m_wildPool.GetGCObjectMemory()));
+        for(int gi=0;gi<3;gi++)
+        {
+            GCLog(nullptr, "Gen"+std::to_string(gi)+"_Mem:"+std::to_string(m_generations[gi].GetGCObjectMemory()));
+        }
     }
 
     void GCCore::GenerationProfile(int index)
     {
         GCLog(nullptr, "GenProfile-"+std::to_string(index));
-        switch(index)
-        {
-            case 0:m_wild.Profile();break;
-            case 1:m_gen1.Profile();break;
-            case 2:m_gen2.Profile();break;
-            case 3:m_gen3.Profile();break;
-            default:break;
-        }
+        m_generations[index].Profile();
         GCLog(nullptr, "EndGenProfile-"+std::to_string(index));
-    }
-
-    void GCCore::ToggleReferenceCounter(bool flag)
-    {
-        m_refCounterFlag=flag;
     }
 
     size_t GCCore::GetGenerationSize(uint8_t genId)
     {
-        switch(genId)
-        {
-            case 0:return m_wild.GetSize();
-            case 1:return m_gen1.GetSize();
-            case 2:return m_gen2.GetSize();
-            case 3:return m_gen3.GetSize();
-            default:return 0;
-        }
-        return 0;
+        return m_generations[genId].GetSize();
     }
 
     size_t GCCore::GetGenerationMemory(uint8_t genId)
     {
-        switch(genId)
-        {
-            case 0:return m_wild.GetGCObjectMemory();
-            case 1:return m_gen1.GetGCObjectMemory();
-            case 2:return m_gen2.GetGCObjectMemory();
-            case 3:return m_gen3.GetGCObjectMemory();
-            default:return 0;
-        }
-        return 0;
+        return m_generations[genId].GetGCObjectMemory();
     }
 }

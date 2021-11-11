@@ -1,7 +1,6 @@
 #include "ExGC.h"
 #include<iostream>
 #include<string>
-#include<time.h>
 #include<assert.h>
 
 namespace ExGC
@@ -66,7 +65,12 @@ namespace ExGC
         return nextNode;
     }
 
-    GCPoolHeader *GCPool::clearNodes()
+    void GCPool::transfer(GCPool& other)
+    {
+        other._adoptAllNodes(this->_discardAllNodes());
+    }
+
+    GCPoolHeader *GCPool::_discardAllNodes()
     {
         GCPoolHeader *retHeader=head;
 
@@ -86,7 +90,7 @@ namespace ExGC
         return retHeader;
     }
 
-    GCPoolHeader *GCPool::linkNodes(GCPoolHeader *anotherHeader)
+    GCPoolHeader *GCPool::_adoptAllNodes(GCPoolHeader *anotherHeader)
     {
         if(anotherHeader==nullptr)
             return nullptr;
@@ -149,102 +153,9 @@ namespace ExGC
         return size; 
     }
 
-    bool GCPool::Contain(GCPoolHeader *node)
-    {
-        return node->obGenId==m_genId;
-    }
-
-    bool GCPool::ShouldGC()
+    bool GCPool::oversized()
     {
         return m_currentSize>=m_collectThreshold;
-    }
-
-    void GCPool::CollectPool()
-    {
-        if(m_currentSize==0)
-            return;
-
-        size_t sizeBeforeCollect=m_currentSize;
-        clock_t timeBeforeCollect=clock();
-        clock_t timeFree=0;
-
-        // Disable auto inc-dec refcnt, or delete operation or 'GCTrackReference' may cause chain reaction of destructing GCObjects
-        GCCore::GetInstance()->ToggleReferenceCounter(false); 
-
-        // Initialize all external reference count value
-        GCPoolHeader *cursorPtr=head;
-        while (cursorPtr)
-        {
-            GCObject *obPtr=ExTractObjectPtr(cursorPtr);
-            cursorPtr->extRefcnt=cursorPtr->obRefcnt;
-            cursorPtr=cursorPtr->next;
-        }
-
-        GCPoolVisitor visitor(GCPoolVisitor::VisitStrategy::CalExtRefCnt,m_genId);
-
-        // Generate all external reference count value
-        cursorPtr=head;
-        while (cursorPtr)
-        {
-            GCObject *obPtr=ExTractObjectPtr(cursorPtr);
-            obPtr->GCTrackReference(visitor);
-            cursorPtr=cursorPtr->next;
-        }
-
-        // Initializing tracking state
-        cursorPtr=head;
-        while (cursorPtr)
-        {
-            if(cursorPtr->extRefcnt>0)
-            {
-                cursorPtr->trackState.trackRoot=true;
-                cursorPtr->trackState.reachable=true;
-            }
-            else
-            {
-                cursorPtr->trackState.trackRoot=false;
-                cursorPtr->trackState.reachable=false;
-            }
-            cursorPtr=cursorPtr->next;
-        }
-
-        // Tracking reachable objects
-        visitor=GCPoolVisitor(GCPoolVisitor::VisitStrategy::TraceReachable,m_genId);
-        cursorPtr=head;
-        while (cursorPtr)
-        {
-            GCObject *obPtr=ExTractObjectPtr(cursorPtr);
-            if(cursorPtr->trackState.trackRoot)
-            {
-                obPtr->GCTrackReference(visitor);
-            }
-            cursorPtr=cursorPtr->next;
-        }
-
-        // Deleting unreachable objects
-        cursorPtr=head;
-        while (cursorPtr)
-        {
-            GCObject *obPtr=ExTractObjectPtr(cursorPtr);
-            GCPoolHeader *nextPtr=cursorPtr->next;
-
-            if(!cursorPtr->trackState.reachable)
-            {
-                delNode(cursorPtr);
-                cursorPtr->obRefcnt=0; // Reset reference before delete target GCObject
-                clock_t temClock=clock();
-                delete obPtr;
-                timeFree+=clock()-temClock;
-            }
-
-            cursorPtr=nextPtr;
-        }
-        GCCore::GetInstance()->ToggleReferenceCounter(true); // Resume auto inc-dec refcnt
-
-        size_t sizeCollected=sizeBeforeCollect-m_currentSize;
-        clock_t timeCollected=clock()-timeBeforeCollect;
-        double time=(timeCollected-timeFree)*1.0/CLOCKS_PER_SEC*1000;
-        GCLog(nullptr,std::to_string(sizeCollected)+" Objects Collected in Generation "+std::to_string(m_genId)+" within "+std::to_string(time)+" milliseconds!");        
     }
 
     void GCPool::Profile()
