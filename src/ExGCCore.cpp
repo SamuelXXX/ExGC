@@ -259,4 +259,23 @@ namespace ExGC
     {
         return m_generations[genId].GetGCObjectMemory();
     }
+
+    size_t GCCore::GetTotalSize()
+    {
+        size_t size=0;
+        for(int gi=0;gi<3;++gi)
+        {
+            size+=m_generations[gi].GetSize();
+        }
+        return size;
+    }
+    size_t GCCore::GetTotalMemory()
+    {
+        size_t size=0;
+        for(int gi=0;gi<3;++gi)
+        {
+            size+=m_generations[gi].GetGCObjectMemory()+m_generations[gi].GetSize()*sizeof(GCPoolHeader);
+        }
+        return size;
+    }
 }

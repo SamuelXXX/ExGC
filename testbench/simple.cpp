@@ -33,9 +33,8 @@ namespace ExGC::Testbench::Simple
         AssertGCSize(0,3);
         g_A=nullptr;
         ExGC::Collect();
-        AssertGCSize(0,0);
-        AssertGCSize(1,0);
-        AssertGCSize(2,0);
-        // exgc::Profile();
+        ExGC::Profile();
+        AssertTotalGCSize(0);
+        
     }
 }

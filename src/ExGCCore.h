@@ -21,10 +21,10 @@ namespace ExGC
     private:
         GCCore();
         GCCore(const GCCore &) = delete;
-        void _collectPool(uint8_t);
-        void _transferPool(uint8_t,uint8_t);
-        bool _poolOversized(uint8_t);
-        void _recursiveCollect(uint8_t);
+        void _collectPool(uint8_t);  // Collect target generation pool
+        void _transferPool(uint8_t,uint8_t); // Transfer all nodes of one generation pool to another
+        bool _poolOversized(uint8_t); // Check if one pool's size exceed collecting threshold
+        void _recursiveCollect(uint8_t); // Collect target generation pool and transfer survived nodes to upper generation
 
     public:
         static GCCore *GetInstance();
@@ -39,6 +39,8 @@ namespace ExGC
         void GenerationProfile(int index); // Profiling Generation
         size_t GetGenerationSize(uint8_t genId);
         size_t GetGenerationMemory(uint8_t genId);
+        size_t GetTotalSize();
+        size_t GetTotalMemory();
 
         friend class GCObject;
     };

@@ -14,6 +14,8 @@
                                         }
 #define GCSizeCondition(genId,size) (ExGC::GCCore::GetInstance()->GetGenerationSize((genId))==(size))
 #define AssertGCSize(genId,size) ExGCAssert(ExGC::GCCore::GetInstance()->GetGenerationSize((genId))==(size),"GC Generation Pool Size Assertion Failed!")
+#define AssertTotalGCSize(size) ExGCAssert(ExGC::GCCore::GetInstance()->GetTotalSize()==(size),"GC Total Size Assertion Failed!")
+#define AssertTotalGCMem(size) ExGCAssert(ExGC::GCCore::GetInstance()->GetTotalMemory()==(size),"GC Total Memory Assertion Failed!")
 namespace ExGC::Testbench
 {
     namespace Simple
