@@ -17,6 +17,7 @@ namespace ExGC
     GCCore::GCCore():
     m_wildPool(WildGenID,0),
     m_enableRefCounter(true),
+    m_enableAutoCollect(true),
     m_generations{GCPool(0,1024),GCPool(1,0),GCPool(2,0)}
     {
     }
@@ -126,7 +127,7 @@ namespace ExGC
             return true;
         
         if(m_generations[genIndex].m_collectThreshold!=0&&
-        m_generations[genIndex].m_currentSize>m_generations[genIndex].m_collectThreshold) // oversize
+        m_generations[genIndex].m_currentSize>=m_generations[genIndex].m_collectThreshold) // oversize
         {
             return true;
         }
@@ -144,22 +145,8 @@ namespace ExGC
                 m_wildPool.delNode(headerPtr);
                 m_generations[0].addNode(headerPtr);
                 
-                if(_shouldCollect(0))
-                {
-                    _collectPool(0);
-                    _transferPool(0,1);
-
-                    if(_shouldCollect(1))
-                    {
-                        _collectPool(1);
-                        _transferPool(1,2);
-
-                        if(_shouldCollect(2))
-                        {
-                            _collectPool(2);
-                        }
-                    }
-                }
+                if(m_enableAutoCollect) // Generation 0 size changed, we need to try to run auto collect
+                    CollectWhenFull(); //
             }
         }
     }
@@ -175,6 +162,36 @@ namespace ExGC
                 delete ob_ptr;
             }
         }
+    }
+
+    void GCCore::CollectWhenFull()
+    {
+        if(_shouldCollect(0))
+        {
+            _collectPool(0);
+            _transferPool(0,1);
+
+            if(_shouldCollect(1))
+            {
+                _collectPool(1);
+                _transferPool(1,2);
+
+                if(_shouldCollect(2))
+                {
+                    _collectPool(2);
+                }
+            }
+        }
+    }
+
+    void GCCore::EnableAutoCollect()
+    {
+        m_enableAutoCollect=true;
+    }
+
+    void GCCore::DisableAutoCollect()
+    {
+        m_enableAutoCollect=false;
     }
 
     void GCCore::Collect(uint8_t gen_index)
@@ -261,6 +278,11 @@ namespace ExGC
         }
             
         std::free(header_ptr);
+    }
+
+    void GCCore::SetCollectThreshold(size_t size)
+    {
+        m_generations[0].m_collectThreshold=size;
     }
 
     void GCCore::MemoryProfile()

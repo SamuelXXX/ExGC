@@ -159,9 +159,10 @@ namespace ExGC
         assert(CalcGCObjectMemory()==m_currentMemory);
         assert(CalcSize()==m_currentSize);
         
-        std::cout<<"\tMaxSize:"<<m_collectThreshold<<std::endl;
+        std::cout<<"\tThreshold:"<<m_collectThreshold<<std::endl;
         std::cout<<"\tSize:"<<m_currentSize<<std::endl;
         std::cout<<"\tMemory:"<<m_currentMemory<<std::endl;
+        std::cout<<"\tTransferTimes:"<<m_transferTimes<<std::endl;
         if(m_currentSize>0)
         {
             std::cout<<"\t>>>>>>>>>>>>>>>>>>>>"<<std::endl;

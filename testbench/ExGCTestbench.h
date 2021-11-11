@@ -18,7 +18,12 @@
 #define AssertTotalGCMem(size) ExGCAssert(ExGC::GCCore::GetInstance()->GetTotalMemory()==(size),"GC Total Memory Assertion Failed!")
 namespace ExGC::Testbench
 {
-    namespace Simple
+    namespace ReferenceCounter
+    {
+        void Test();
+    }
+
+    namespace AutoCollect
     {
         void Test();
     }

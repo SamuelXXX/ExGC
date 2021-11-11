@@ -25,4 +25,24 @@ namespace ExGC
     {
         GCCore::GetInstance()->Collect(2);
     }
+
+    void SetCollectThreshold(size_t size)
+    {
+        GCCore::GetInstance()->SetCollectThreshold(size);
+    }
+
+    void EnableAutoCollect()
+    {
+        GCCore::GetInstance()->EnableAutoCollect();
+    }
+
+    void DisableAutoCollect()
+    {
+        GCCore::GetInstance()->DisableAutoCollect();
+    }
+
+    void CollectWhenFull()
+    {
+        GCCore::GetInstance()->CollectWhenFull();
+    }
 }

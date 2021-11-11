@@ -15,6 +15,7 @@ namespace ExGC
     class GCCore final 
     {
         bool m_enableRefCounter;
+        bool m_enableAutoCollect;
         GCPool m_wildPool;
         GCPool m_generations[3];
 
@@ -27,11 +28,18 @@ namespace ExGC
 
     public:
         static GCCore *GetInstance();
+        
         void Collect(uint8_t);
         void GCIncRef(GCObject *);
         void GCDecRef(GCObject *);
         void *Malloc(size_t);
         void Free(void *);
+        void SetCollectThreshold(size_t);
+
+        void CollectWhenFull(); // Collect when Generation is Full, Normally performed by auto collect process
+        void EnableAutoCollect();
+        void DisableAutoCollect();
+
         
     public: // Profiling Interface
         void MemoryProfile(); // Profiling Memory Occupation

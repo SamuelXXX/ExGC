@@ -1,7 +1,7 @@
 #ifndef __GAMERUNTIME_H__
 #define __GAMERUNTIME_H__
 
-#include "exgc_testbench.h"
+#include "ExGCTestbench.h"
 #include<vector>
 
 namespace ExGC::Testbench::GameRuntime

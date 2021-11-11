@@ -37,6 +37,11 @@ namespace ExGC
     void Profile();
     void CollectGeneration(int);
     void Collect();
+    void SetCollectThreshold(size_t);
+    
+    void EnableAutoCollect();
+    void DisableAutoCollect();
+    void CollectWhenFull(); // Collect when Generation is Full, Normally performed by auto collect process
 }
 
 #endif
